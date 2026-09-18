@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Host/">
+    <Project Path="IdentityPlatform.Api/IdentityPlatform.Api.csproj" />
+  </Folder>
+  <Folder Name="/IdentityPlatform/" />
+  <Folder Name="/IdentityPlatform/Audit/" />
+  <Folder Name="/IdentityPlatform/Authorization/" />
+  <Folder Name="/IdentityPlatform/Identity/">
+    <Project Path="IdentityPlatform.Identity.Application/IdentityPlatform.Identity.Application.csproj" />
+    <Project Path="IdentityPlatform.Identity.Domain/IdentityPlatform.Identity.Domain.csproj" />
+    <Project Path="IdentityPlatform.Identity.Infrastructure/IdentityPlatform.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/IdentityPlatform/Security/" />
+  <Folder Name="/Test/">
+    <Project Path="TestsProj/TestsProj.csproj" Id="dcaa19e1-83a3-411d-8d84-46dbbf34b568" />
+  </Folder>
+  <Project Path="Common.Application/Common.Application.csproj" Id="aabb5719-1f1d-494d-a7f1-8e557921e79e" />
+  <Project Path="Common.Core/Common.Core.csproj" />
+  <Project Path="Common.Domain/Common.Domain.csproj" />
+  <Project Path="Common.Infrastructure/Common.Infrastructure.csproj" Id="e29e99c9-0629-49a0-993f-9df391e23b62" />
+</Solution>
