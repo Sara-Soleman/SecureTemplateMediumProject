@@ -1,5 +1,8 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.CQRS;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
 using IdentityPlatform.Identity.Domain.Users;
@@ -10,23 +13,25 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
 {
-    public sealed class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, Guid>
+    public sealed class RegisterUserCommandHandler : CommandHandlerBase<RegisterUserCommand, Guid>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public RegisterUserCommandHandler(
                 IUserRepository userRepository,
                 IPasswordHasher passwordHasher,
-                IUnitOfWork unitOfWork)
+                IUnitOfWork unitOfWork,
+                IDomainEventDispatcher domainEventDispatcher)
+                    : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<Guid, IDomainError>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+       
+        protected async override Task<Result<Guid, IDomainError>> ExecuteAsync(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             // 1. التحقق إن كان المستخدم موجوداً مسبقاً
             var exists = await _userRepository.ExistsByUsernameOrEmailAsync(
@@ -50,11 +55,13 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
             // 4. إضافة المستخدم إلى الـ Repository
             await _userRepository.AddAsync(user, cancellationToken);
 
-            // 5. حفظ التغييرات عبر IUnitOfWork
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             // إرجاع النتيجة بنجاح مغلفة بـ Result
             return Result.Success<Guid, IDomainError>(user.Id.Value);
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<Guid, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

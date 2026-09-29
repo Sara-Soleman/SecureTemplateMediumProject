@@ -56,13 +56,3 @@ namespace Common.Application.Abstractions.Handlers
     }
 }
 
-
-
-/*
- * public sealed record RegisterUserCommand(string Username, string Email, string Password) : ICommand<Id<User>>;
-
- *  public sealed class RegisterUserCommandHandler : CommandHandlerBase<RegisterUserCommand, Id<User>>
- *  {
-        // التنفيذ هنا...
- *  }
- */

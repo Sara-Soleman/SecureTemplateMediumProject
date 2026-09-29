@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccountIsInactive" xml:space="preserve">
+    <value>الحساب غير نشط.</value>
+  </data>
+  <data name="BadRequest" xml:space="preserve">
+    <value>طلب أو معلمات غير صالحة.</value>
+  </data>
+  <data name="Conflict" xml:space="preserve">
+    <value>البيانات المقدمة تتعارض مع البيانات الموجودة.</value>
+  </data>
+  <data name="Credential" xml:space="preserve">
+    <value>سايشسنتلبسشلبسلش</value>
+  </data>
+  <data name="EmailInvalid" xml:space="preserve">
+    <value>صيغة البريد الإلكتروني غير صحيحة</value>
+  </data>
+  <data name="EmailOrUsernameAlreadyExists" xml:space="preserve">
+    <value>البريد الإلكتروني أو اسم المستخدم موجود بالفعل</value>
+  </data>
+  <data name="EmailRequired" xml:space="preserve">
+    <value>البريد الإلكتروني مطلوب.</value>
+  </data>
+  <data name="IdenticalPassword" xml:space="preserve">
+    <value>كلمة المرور الجديدة يجب ألا تكون مطابقة للقديمة.</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>بيانات اعتماد غير صالحة...</value>
+  </data>
+  <data name="InvalidCurrentPassword" xml:space="preserve">
+    <value>كلمة المرور الحالية غير صحيحة.</value>
+  </data>
+  <data name="InvalidMfaCode" xml:space="preserve">
+    <value>رمز المصادقة متعددة العوامل غير صالح.</value>
+  </data>
+  <data name="InvalidOrExpiredPasswordResetToken" xml:space="preserve">
+    <value>رمز إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.</value>
+  </data>
+  <data name="InvalidRefreshToken" xml:space="preserve">
+    <value>رمز التحديث غير صالح.</value>
+  </data>
+  <data name="MFASuccess" xml:space="preserve">
+    <value>تم التحقق من المصادقة متعددة العوامل وتفعيلها بنجاح.</value>
+  </data>
+  <data name="MFAUpdate" xml:space="preserve">
+    <value>تم تحديث تفضيلات المصادقة متعددة العوامل بنجاح.</value>
+  </data>
+  <data name="NewPasswordRequired" xml:space="preserve">
+    <value>كلمة المرور الجديدة مطلوبة.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>لم يتم العثور على العنصر المطلوب.</value>
+  </data>
+  <data name="PasswordChange" xml:space="preserve">
+    <value>تم تغيير كلمة المرور وإبطال الجلسات السابقة بنجاح.</value>
+  </data>
+  <data name="PasswordMissingNumber" xml:space="preserve">
+    <value>كلمة المرور يجب أن تحتوي على رقم واحد على الأقل</value>
+  </data>
+  <data name="PasswordMissingUppercase" xml:space="preserve">
+    <value>كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>كلمة المرور مطلوبة.</value>
+  </data>
+  <data name="PasswordShort" xml:space="preserve">
+    <value>كلمة المرور يجب ألا تقل عن 8 أحرف</value>
+  </data>
+  <data name="ProvideTOTP" xml:space="preserve">
+    <value>يرجى إدخال رمز TOTP من تطبيق المصادقة الخاص بك.</value>
+  </data>
+  <data name="SecurityAlertTokenReuseDetected" xml:space="preserve">
+    <value>تم رصد إعادة استخدام الرمز المميز.</value>
+  </data>
+  <data name="SecurityVerificationCodeBody" xml:space="preserve">
+    <value> رمز التحقق الخاص بك هو</value>
+  </data>
+  <data name="SecurityVerificationCodeSubject" xml:space="preserve">
+    <value>رمز التحقق الأمني</value>
+  </data>
+  <data name="SessionLogoutSuccessfully" xml:space="preserve">
+    <value>تم تسجيل الخروج من جميع الأجهزة وإلغاء كافة الجلسات بنجاح.</value>
+  </data>
+  <data name="SessionNotFound" xml:space="preserve">
+    <value>لم يتم العثور على الجلسة.</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>ادعاء هوية المستخدم غير صالح.</value>
+  </data>
+  <data name="UnExpected" xml:space="preserve">
+    <value>حدث خطأ غير متوقع.</value>
+  </data>
+  <data name="UsernameLong" xml:space="preserve">
+    <value>اسم المستخدم يجب ألا يتجاوز 100 حرف.</value>
+  </data>
+  <data name="UsernameRequired" xml:space="preserve">
+    <value>اسم المستخدم مطلوب.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>لم يتم العثور على المستخدم.</value>
+  </data>
+  <data name="Validation" xml:space="preserve">
+    <value>فشل التحقق.</value>
+  </data>
+  <data name="VerificationEmailSend" xml:space="preserve">
+    <value>تم إرسال رمز التحقق إلى بريدك الإلكتروني.</value>
+  </data>
+</root>

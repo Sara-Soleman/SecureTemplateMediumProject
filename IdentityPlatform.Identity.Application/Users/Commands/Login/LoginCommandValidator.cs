@@ -9,11 +9,15 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
     {
         public LoginCommandValidator()
         {
+           
+            
             RuleFor(x => x.UsernameOrEmail)
-                .NotEmpty().WithMessage("اسم المستخدم أو البريد الإلكتروني مطلوب.");
+              
+                .NotEmpty().WithMessage("EmailRequired")
+                .EmailAddress().WithMessage("EmailInvalid");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("كلمة المرور مطلوبة.");
+            .NotEmpty().WithMessage("PasswordRequired");
         }
     }
 }

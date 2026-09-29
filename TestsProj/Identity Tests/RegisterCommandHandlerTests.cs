@@ -10,7 +10,7 @@ using System.Text;
 
 namespace TestsProj.Identity_Tests
 {
-    public class RegisterCommandHandlerTests
+    public class RegisterCommandHandlerTests  
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IPasswordHasher> _passwordHasherMock;

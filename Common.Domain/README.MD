@@ -28,3 +28,23 @@ Error & Event Handling
 Domain Errors: Structured failure models categorized via smart enums (ErrorType) for consistent API and business rule feedback.
 
 Domain Events: Decoupled messaging infrastructure integrated with MediatR (INotificationHandler) to propagate state changes asynchronously across the system.
+
+ما هي طبقة Common.Domain؟
+هي القلب النابض للقواعد التجارية (Business Rules) داخل نظامك. على عكس Common.Core التي تحتوي على عقود عامة جداً، فإن Common.Domain تهتم بفهم "كيف يعمل الـ Domain الخاص بك" (مثل الكيانات، التكتلات، وقواعد العمل الصارمة التي تحكمها).
+
+🔍 ماذا تفعل وماذا تحتوي؟
+تحتوي على الكيانات المجردة وقواعد التكتل (Entities & Aggregate Roots):
+
+تضم القواعد الأساسية التي تضمن صحة البيانات وتماسكها داخل الموديول (مثل ضمان أن أي كيان رئيسي يمكنه تتبع وتوليد الأحداث الخاصة به).
+
+تدير أحداث الدومين الداخلية (IDomainEvent & Domain Events):
+
+ماذا تفعل؟ عندما يحدث تغيير مهم داخل التطبيق (مثل: تغيير كلمة المرور، أو تحديث بيانات مستخدم)، يقوم الـ Aggregate بتوليد حدث دومين داخلي عبر واجهة IDomainEvent.
+
+إلى أين ترسلها؟ هذه الأحداث لا تخرج خارج الخدمة أو الموديول (على عكس Integration Events)، بل يتم التقاطها محلياً داخل نفس النظام بواسطة الـ DomainEventDispatcher لمعالجة المهام المرتبطة بها (مثل إرسال إشعار داخلي أو تحديث جدول مرتبط) قبل حفظ التغييرات في قاعدة البيانات.
+
+🌱 هل هي ثابتة أم قابلة للتعديل مستقبلاً مع المشاريع الجديدة؟
+نعم، قابلة للتعديل والتوسعة بالتأكيد:
+عند إضافة موديول جديد، قد تحتاجي إلى إضافة قواعد مشتركة تخص الكيانات (مثل إضافة خصائص عامة للـ Audit مثل CreatedBy و CreatedAt في قاعدة الكيانات، أو إضافة واجهات جديدة لـ Value Objects المشتركة).
+
+طبيعة التعديل: التعديلات هنا تكون إضافية وهيكلية لتوحيد مفهوم الـ Domain عبر موديولاتك المختلفة، وتظل محتفظة باستقلاليتها وعدم ارتباطها بقواعد بيانات معينة أو تقنيات خارجية.

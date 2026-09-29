@@ -20,6 +20,21 @@ namespace IdentityPlatform.Identity.Domain.Tokens
         public string IpAddress { get; private set; }
         public string UserAgent { get; private set; }
 
+        private RefreshToken(
+        Id<RefreshToken> id,
+        Id<RefreshTokenFamily> familyId,
+        string tokenHash,
+        TimeSpan lifetime,
+        string ipAddress,
+        string userAgent) : base(id)
+        {
+            FamilyId = familyId;
+            TokenHash = tokenHash;
+            CreatedAt = DateTimeOffset.UtcNow;
+            ExpiresAt = DateTimeOffset.UtcNow.Add(lifetime);
+            IpAddress = ipAddress;
+            UserAgent = userAgent;
+        }
 
         private RefreshToken(Id<RefreshToken> id, Id<RefreshTokenFamily> familyId, string tokenHash, TimeSpan lifetime)
          : base(id)
@@ -29,9 +44,27 @@ namespace IdentityPlatform.Identity.Domain.Tokens
             ExpiresAt = DateTimeOffset.UtcNow.Add(lifetime);
         }
 
+
+
         public static RefreshToken Create(Id<RefreshTokenFamily> familyId, string tokenHash, TimeSpan lifetime, Id<RefreshToken>? id = null)
         {
             return new RefreshToken(id ?? Id<RefreshToken>.New(), familyId, tokenHash, lifetime);
+        }
+        public static RefreshToken Create(
+        Id<RefreshTokenFamily> familyId,
+        string tokenHash,
+        TimeSpan lifetime,
+        string ipAddress,
+        string userAgent,
+        Id<RefreshToken>? id = null)
+        {
+            return new RefreshToken(
+                id ?? Id<RefreshToken>.New(),
+                familyId,
+                tokenHash,
+                lifetime,
+                ipAddress,
+                userAgent);
         }
         public RefreshToken()
         {

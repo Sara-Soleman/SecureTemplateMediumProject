@@ -1,13 +1,16 @@
 ﻿using Common.Domain;
+using IdentityPlatform.Identity.Domain.Sessions.Events;
+using IdentityPlatform.Identity.Domain.Users;
+using IdentityPlatform.Identity.Domain.Users.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace IdentityPlatform.Identity.Domain.Sessions
 {
-    public sealed class UserSession : Entity<UserSession>
+    public sealed class UserSession : AggregateRoot<UserSession>
     {
-        public Guid UserId { get; private set; }
+        public Id<User> UserId { get; private set; }
         public string RefreshToken { get; private set; } = string.Empty;
         public string IpAddress { get; private set; } = string.Empty;
         public string UserAgent { get; private set; } = string.Empty;
@@ -29,7 +32,7 @@ namespace IdentityPlatform.Identity.Domain.Sessions
             string refreshToken,
             string ipAddress,
             string userAgent,
-            DateTimeOffset expiresAt) : base(id)
+            DateTimeOffset expiresAt) 
         {
             UserId = userId;
             RefreshToken = refreshToken;
@@ -47,15 +50,13 @@ namespace IdentityPlatform.Identity.Domain.Sessions
             string userAgent,
             DateTimeOffset expiresAt)
         {
-            // يمكنك إضافة التحقق من صحة المدخلات هنا (Guard Clauses)
-            return new UserSession(
-                Guid.NewGuid(),
-                userId,
-                refreshToken,
-                ipAddress,
-                userAgent,
-                expiresAt
-            );
+            var sessionId = Guid.NewGuid();
+            var session = new UserSession(sessionId, userId, refreshToken, ipAddress, userAgent, expiresAt);
+
+            // إطلاق حدث الإنشاء
+            session.RaiseDomainEvent(new UserSessionCreatedEvent(sessionId, userId, ipAddress, userAgent, DateTimeOffset.UtcNow));
+            return session;
+
         }
 
         // سلوك إبطال الجلسة (Revocation) عند تسجيل الخروج أو الاشتباه الأمني
@@ -65,6 +66,7 @@ namespace IdentityPlatform.Identity.Domain.Sessions
             {
                 RevokedAt = DateTimeOffset.UtcNow;
             }
+            RaiseDomainEvent(new UserSessionRevokedEvent(this.Id, this.UserId, DateTimeOffset.UtcNow));
         }
 
         // تحديث الـ Refresh Token عند عملية الـ Token Refresh (Rotation)

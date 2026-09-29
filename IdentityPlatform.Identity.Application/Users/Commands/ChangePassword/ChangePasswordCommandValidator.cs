@@ -10,17 +10,17 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ChangePassword
         public ChangePasswordCommandValidator()
         {
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("معرف المستخدم مطلوب.");
+                .NotEmpty();
 
             RuleFor(x => x.CurrentPassword)
-                .NotEmpty().WithMessage("كلمة المرور الحالية مطلوبة.");
+                .NotEmpty().WithMessage("PasswordRequired");
 
             RuleFor(x => x.NewPassword)
-                .NotEmpty().WithMessage("كلمة المرور الجديدة مطلوبة.")
-                .MinimumLength(8).WithMessage("كلمة المرور يجب ألا تقل عن 8 أحرف.")
-                .NotEqual(x => x.CurrentPassword).WithMessage("كلمة المرور الجديدة يجب ألا تكون مطابقة للقديمة.")
-                .Matches("[A-Z]").WithMessage("كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل.")
-                .Matches("[0-9]").WithMessage("كلمة المرور يجب أن تحتوي على رقم واحد على الأقل.");
+                .NotEmpty().WithMessage("NewPasswordRequired")
+                .MinimumLength(8).WithMessage("PasswordShort")
+                .NotEqual(x => x.CurrentPassword).WithMessage("IdenticalPassword")
+                .Matches("[A-Z]").WithMessage("PasswordMissingUppercase")
+                .Matches("[0-9]").WithMessage("PasswordMissingNumber");
         }
     }
 }

@@ -23,6 +23,12 @@ namespace Common.Infrastructure.Messaging
             _eventTypeMappings = eventTypeMappings ?? throw new ArgumentNullException(nameof(eventTypeMappings));
         }
 
+
+        /*
+         * يدخل في حلقة (while) لا تنتهي إلا عند إيقاف التطبيق، ويظل يراقب رسائل Kafka عبر الـ _consumer.Consume().
+         * عندما تصل رسالة عبر Topic معين، يتحقق القاموس _eventTypeMappings لمعرفة الكلاس (C# Type) الذي يطابق هذا الـ Topic.
+         * يقوم بفك تشفير (Deserialization) نص الـ JSON الوارد من رسالة Kafka وتحويله إلى كلاس C# حقيقي (integrationEvent).
+         */
         public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
             try
@@ -59,7 +65,11 @@ namespace Common.Infrastructure.Messaging
                 _consumer.Close();
             }
         }
-
+        /*
+         * (توجيه الحدث للمعالج المناسب):
+         * بعد أن أصبح لدينا كائن الحدث جاهزاً، يبحث الكود في قاموس المعالجات _handlers عن المعالج (Handler) المسؤول عن هذا النوع من الأحداث.
+         * يستخدم Reflection (GetMethod("HandleAsync") و Invoke) لتشغيل ميثود المعالجة الخاص بهذا الحدث بشكل ديناميكي وآمن، لكي ينفذ الكود المطلوب (مثلاً: إرسال بريد إلكتروني، تحديث جدول خارجي، إلخ).
+         */
         public async Task DispatchAsync(object integrationEvent, CancellationToken cancellationToken)
         {
             var eventType = integrationEvent.GetType();

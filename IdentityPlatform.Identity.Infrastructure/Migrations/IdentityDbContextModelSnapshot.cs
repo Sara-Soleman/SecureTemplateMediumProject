@@ -54,11 +54,16 @@ namespace IdentityPlatform.Identity.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RefreshToken");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("UserSessions");
                 });
@@ -216,6 +221,13 @@ namespace IdentityPlatform.Identity.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("IdentityPlatform.Identity.Domain.Sessions.UserSession", b =>
+                {
+                    b.HasOne("IdentityPlatform.Identity.Domain.Users.User", null)
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId1");
+                });
+
             modelBuilder.Entity("IdentityPlatform.Identity.Domain.Tokens.RefreshToken", b =>
                 {
                     b.HasOne("IdentityPlatform.Identity.Domain.Tokens.RefreshTokenFamily", "Family")
@@ -246,6 +258,8 @@ namespace IdentityPlatform.Identity.Infrastructure.Migrations
             modelBuilder.Entity("IdentityPlatform.Identity.Domain.Users.User", b =>
                 {
                     b.Navigation("Credential");
+
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,8 +1,10 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Users;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,8 +16,14 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
 {
     public class IdentityDbContext : DbContext, IUnitOfWork
     {
-        public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options)
+        private readonly IPublisher _publisher;
+        private readonly IDomainEventDispatcher _dispatcher;
+        public IdentityDbContext(DbContextOptions<IdentityDbContext> options,
+            IPublisher publisher,
+            IDomainEventDispatcher dispatcher) : base(options)
         {
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _dispatcher = dispatcher;
         }
 
         public DbSet<User> Users => Set<User>();
@@ -43,5 +51,34 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
 
 
         }
+        //public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        //{
+        //    // أ. استخراج كل الـ Aggregates التي تحتوي على Domain Events معلقة قبل الحفظ
+        //    var domainEntities = ChangeTracker
+        //        .Entries<IAggregateRoot>()
+        //        .Where(x => x.Entity.DomainEvents.Any())
+        //        .Select(x => x.Entity)
+        //        .ToList();
+
+        //    var domainEvents = domainEntities
+        //        .SelectMany(x => x.PopDomainEvents())
+        //        .ToList();
+
+        //    // ب. الحفظ الفعلي في قاعدة البيانات (Transactional Boundary)
+        //    var result = await base.SaveChangesAsync(cancellationToken);
+
+        //    // ج. نشر الأحداث عبر MediatR بعد نجاح الحفظ لتلتقطها الـ Handlers (مثل Serilog)
+        //    foreach (var domainEvent in domainEvents)
+        //    {
+        //        await _publisher.Publish(domainEvent, cancellationToken);
+        //    }
+        //    // نشر الأحداث عبر الـ Dispatcher 
+        //    if (domainEvents.Any())
+        //    {
+        //        await _dispatcher.DispatchAsync(domainEvents, cancellationToken);
+        //    }
+
+        //    return result;
+        //}
     }
 }

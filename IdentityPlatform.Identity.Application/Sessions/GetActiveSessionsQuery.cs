@@ -8,8 +8,8 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Sessions
 {
-    public sealed record GetActiveSessionsQuery(Guid UserId) : IQuery<Result<IEnumerable<UserSessionDto>, IDomainError>>;
+    public sealed record GetActiveSessionsQuery(Guid UserId)
+        : IQuery<IEnumerable<UserSessionDto>>;
 
 
-   
 }

@@ -1,8 +1,12 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.CQRS;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
 using IdentityPlatform.Identity.Domain.Dto;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Enums;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -12,12 +16,12 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.Login
 {
-    public sealed class VerifyLoginMfaCommandHandler : ICommandHandler<VerifyLoginMfaCommand, AuthenticationResponseDto>
+    public sealed class VerifyLoginMfaCommandHandler : CommandHandlerBase<VerifyLoginMfaCommand, AuthenticationResponseDto>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITotpService _totpService;
         private readonly IJwtTokenGenerator _tokenService; // خدمة إصدار الـ JWT و Refresh Token لديك
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public VerifyLoginMfaCommandHandler(
@@ -25,16 +29,19 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
             ITotpService totpService,
             IJwtTokenGenerator tokenService,
             IUnitOfWork unitOfWork,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IDomainEventDispatcher domainEventDispatcher)
+: base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _totpService = totpService;
             _tokenService = tokenService;
-            _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Result<AuthenticationResponseDto, IDomainError>> Handle(VerifyLoginMfaCommand request, CancellationToken cancellationToken)
+        
+
+        protected async override Task<Result<AuthenticationResponseDto, IDomainError>> ExecuteAsync(VerifyLoginMfaCommand request, CancellationToken cancellationToken)
         {
             // 1. جلب المستخدم
             var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
@@ -42,7 +49,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
             {
                 return Result.Failure<AuthenticationResponseDto, IDomainError>(DomainError.UserNotFound());
             }
-
+            _user = user;
             bool isCodeValid = false;
 
             // 2. التحقق بناءً على القناة المستخدمة
@@ -78,11 +85,14 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
             }
             // 3. نجاح التحقق: تنظيف أي رموز مؤقتة وإصدار التوكنات النهائية
             // (يمكنك إضافة منطق توليد عائلة التوكنات هنا حسب نظامك الحالي)
-            var authResponse = await _tokenService.GenerateTokensAsync(user,ipAddress,userAgent, cancellationToken: cancellationToken);
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var authResponse = await _tokenService.GenerateTokensAsync(user, ipAddress, userAgent, cancellationToken: cancellationToken);
 
             return Result.Success<AuthenticationResponseDto, IDomainError>(authResponse);
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<AuthenticationResponseDto, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

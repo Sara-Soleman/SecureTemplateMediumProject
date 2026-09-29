@@ -10,18 +10,18 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
         public RegisterUserCommandValidator()
         {
             RuleFor(x => x.Username)
-                .NotEmpty().WithMessage("اسم المستخدم مطلوب.")
-                .MaximumLength(100).WithMessage("اسم المستخدم يجب ألا يتجاوز 100 حرف.");
+                .NotEmpty().WithMessage("UsernameRequired")
+                .MaximumLength(100).WithMessage("UsernameLong");
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("البريد الإلكتروني مطلوب.")
-                .EmailAddress().WithMessage("صيغة البريد الإلكتروني غير صحيحة.");
+                .NotEmpty().WithMessage("EmailRequired")
+                .EmailAddress().WithMessage("EmailInvalid");
 
             RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("كلمة المرور مطلوبة.")
-            .MinimumLength(8).WithMessage("كلمة المرور يجب ألا تقل عن 8 أحرف.")
-            .Matches("[A-Z]").WithMessage("كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل.")
-            .Matches("[0-9]").WithMessage("كلمة المرور يجب أن تحتوي على رقم واحد على الأقل.");
+            .NotEmpty().WithMessage("PasswordRequired")
+            .MinimumLength(8).WithMessage("PasswordShort")
+            .Matches("[A-Z]").WithMessage("PasswordMissingUppercase")
+            .Matches("[0-9]").WithMessage("PasswordMissingNumber");
         }
     }
 }

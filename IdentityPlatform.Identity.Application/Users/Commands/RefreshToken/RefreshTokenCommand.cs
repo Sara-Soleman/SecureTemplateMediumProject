@@ -10,5 +10,5 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
     /// <summary>
     /// Represents a command to refresh an access token using a refresh token.
     /// </summary>
-    public sealed record RefreshTokenCommand(string RefreshToken, string IpAddress) : ICommand<AuthResponseDto>;
+    public sealed record RefreshTokenCommand(string RefreshToken, string IpAddress, string UserAgent) : ICommand<AuthResponseDto>;
 }

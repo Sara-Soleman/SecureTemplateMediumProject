@@ -2,6 +2,7 @@
 using Common.Domain.Errors;
 using Common.Domain.Extensions;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Users.Enums;
 using IdentityPlatform.Identity.Domain.Users.Events;
 using System;
@@ -37,6 +38,11 @@ namespace IdentityPlatform.Identity.Domain.Users
         public string? EmailOtpCode { get; private set; }
         public DateTimeOffset? EmailOtpExpiresAt { get; private set; }
 
+
+
+        private readonly List<UserSession> _sessions = new();
+        public IReadOnlyCollection<UserSession> Sessions => _sessions.AsReadOnly();
+
         public void SetEmailOtp(string code, TimeSpan validityDuration)
         {
             EmailOtpCode = code;
@@ -68,7 +74,7 @@ namespace IdentityPlatform.Identity.Domain.Users
 
         public User()
         {
-            
+
         }
         public static User Create(string username, string email, string passwordHash)
         {
@@ -94,6 +100,7 @@ namespace IdentityPlatform.Identity.Domain.Users
         {
             TokenVersion++;
             UpdatedAt = DateTimeOffset.UtcNow;
+
 
             RaiseDomainEvent(new TokenVersionIncrementedEvent(this.Id, TokenVersion));
         }
@@ -142,10 +149,10 @@ namespace IdentityPlatform.Identity.Domain.Users
         }
 
 
-        public static User CreateTestUser(string username="test", string email = "test@example.com", string passwordHash="m934fshfkaui-++-erriekjdxm")
+        public static User CreateTestUser(string username = "test", string email = "test@example.com", string passwordHash = "m934fshfkaui-++-erriekjdxm")
         {
             var user = new User(username, email, passwordHash);
-           
+
             return user;
         }
 
@@ -165,7 +172,7 @@ namespace IdentityPlatform.Identity.Domain.Users
         public void VerifyAndEnableMfa(string secret)
         {
             MfaSecret = secret.EnsureNonBlank();
-           // IsMfaEnabled = true;
+            // IsMfaEnabled = true;
             UpdatedAt = DateTimeOffset.UtcNow;
 
             RaiseDomainEvent(new MfaEnabledEvent(this.Id));
@@ -189,6 +196,22 @@ namespace IdentityPlatform.Identity.Domain.Users
 
             PreferredMfaType = newMfaType;
             return Result.Success<bool, IDomainError>(true);
+        }
+
+
+        /// <summary>
+        /// إبطال جميع الجلسات وعائلات التوكنات النشطة للمستخدم (عند تغيير كلمة المرور مثلاً)
+        /// </summary>
+        public void RevokeAllRefreshFamilies()
+        {
+            foreach (var session in _sessions.Where(s => s.RevokedAt == null))
+            {
+                session.Revoke(); // استدعاء دالة الإلغاء الخاصة بالجلسا أو العائلة
+
+               
+            }
+
+
         }
     }
 }

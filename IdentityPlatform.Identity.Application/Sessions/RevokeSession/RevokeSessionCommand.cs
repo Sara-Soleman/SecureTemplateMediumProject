@@ -8,5 +8,5 @@ using System.Text;
 namespace IdentityPlatform.Identity.Application.Sessions.RevokeSession
 {
     public sealed record RevokeSessionCommand(Guid SessionId, Guid CurrentUserId)
-      : ICommand<Result<bool, IDomainError>>;
+      : ICommand<bool>;
 }

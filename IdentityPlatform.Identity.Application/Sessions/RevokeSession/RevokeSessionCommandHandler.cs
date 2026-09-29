@@ -1,8 +1,13 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.CQRS;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
+using IdentityPlatform.Identity.Domain.Users;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -11,38 +16,41 @@ using System.Text;
 namespace IdentityPlatform.Identity.Application.Sessions.RevokeSession
 {
     public sealed class RevokeSessionCommandHandler
-        : IRequestHandler<RevokeSessionCommand, Result<Result<bool, IDomainError>, IDomainError>>
+        : CommandHandlerBase<RevokeSessionCommand, bool>
     {
         private readonly IUserSessionRepository _sessionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private UserSession _userSession;
 
         public RevokeSessionCommandHandler(
             IUserSessionRepository sessionRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork, IDomainEventDispatcher domainEventDispatcher)
+            : base(domainEventDispatcher, unitOfWork)
         {
             _sessionRepository = sessionRepository;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<Result<bool, IDomainError>, IDomainError>> Handle(
-            RevokeSessionCommand request,
-            CancellationToken cancellationToken)
+        
+
+        protected async override Task<Result<bool, IDomainError>> ExecuteAsync(RevokeSessionCommand request, CancellationToken cancellationToken)
         {
             var session = await _sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-
-            if (session == null || session.UserId != request.CurrentUserId)
+            var userId = new Id<User>(request.CurrentUserId);
+            if (session == null || session.UserId != userId)
             {
-                Result<bool, IDomainError> innerFailure = Result.Failure<bool, IDomainError>(DomainError.SessionNotFound());
-                return Result.Success<Result<bool, IDomainError>, IDomainError>(innerFailure);
+                return Result.Failure<bool, IDomainError>(DomainError.SessionNotFound());
+                
             }
 
             session.Revoke();
 
             _sessionRepository.Update(session);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            
+            return Result.Success<bool, IDomainError>(true);
+        }
 
-            Result<bool, IDomainError> innerSuccess = Result.Success<bool, IDomainError>(true);
-            return Result.Success<Result<bool, IDomainError>, IDomainError>(innerSuccess);
+        protected override IAggregateRoot? GetAggregateRoot(Result<bool, IDomainError> result)
+        {
+            return _userSession;
         }
     }
 }

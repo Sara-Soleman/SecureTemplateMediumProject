@@ -1,4 +1,5 @@
-﻿using IdentityPlatform.Identity.Application.MFA.ChangeMfaType;
+﻿using IdentityPlatform.Api.Middleware;
+using IdentityPlatform.Identity.Application.MFA.ChangeMfaType;
 using IdentityPlatform.Identity.Application.MFA.SetupMfa;
 using IdentityPlatform.Identity.Application.MFA.VerifyAndEnableMfa;
 using IdentityPlatform.Identity.Application.Users.Commands.ChangePassword;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
 
 namespace IdentityPlatform.Api.Controllers
@@ -24,10 +26,12 @@ namespace IdentityPlatform.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ISender _sender;
+        private readonly IStringLocalizer _localizer;
 
-        public AuthController(ISender sender)
+        public AuthController(ISender sender, IStringLocalizerFactory factory)
         {
             _sender = sender;
+            _localizer = factory.Create("SharedResources", "IdentityPlatform.Api");
         }
 
         /// <summary>
@@ -43,10 +47,22 @@ namespace IdentityPlatform.Api.Controllers
             // التحقق من نتيجة الـ Result Pattern
             if (result.IsFailure)
             {
+
+                var response = result;
+
+
+                var localizedMainMessage = _localizer[response.Error.ErrorMessage];
+
+               
+                var localizedErrors = response.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value) 
+                    .ToList() ?? new List<string>();
+
                 return BadRequest(new
                 {
-                    Code = result.Error.GetHashCode(),
-                    Message = result.Error.ErrorMessage
+                    code = response.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors            
                 });
             }
 
@@ -63,37 +79,112 @@ namespace IdentityPlatform.Api.Controllers
 
             if (result.IsFailure)
             {
-                return Unauthorized(new { error = result.Error.ErrorMessage });
-            }
 
-            return Ok(result.Value);
+                var ErrorResponse = result;
+
+
+               
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
+            }
+            //if (result.IsFailure)
+            //{
+
+            //    return result.ToLocalizedErrorResult(_localizer);
+            //   // return Unauthorized(new { error = result.Error.ErrorMessage });
+            //}
+
+            var response = result.Value;
+
+            
+            var localizedResponse = new
+            {
+                response.UserId,
+                response.MfaType,
+                Message = _localizer[response.Message].Value
+            };
+
+            return Ok(localizedResponse);
+
+           // return Ok(result.Value);
         }
 
         /// <summary>
         /// المرحلة الثانية: التحقق من رمز الـ MFA (البريد أو TOTP) وإصدار التوكنات النهائية
         /// </summary>
         [HttpPost("verify-mfa")]
+        
         public async Task<IActionResult> VerifyMfa([FromBody] VerifyLoginMfaCommand command, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { error = result.Error.ErrorMessage });
+
+                var ErrorResponse = result;
+
+
+                if (ErrorResponse.Error.Errors.Count == 1)
+                {
+                    return BadRequest(new
+                    {
+                        code = ErrorResponse.Error.GetHashCode(),
+                        message = result.ToLocalizedErrorResult(_localizer)
+                    });
+                }
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
+
 
             return Ok(result.Value);
         }
 
         /// <label>تجديد التوكن (Token Rotation)</label>
         [HttpPost("refresh-token")]
+        [Authorize]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                return BadRequest(result.Error);
+
+                var ErrorResponse = result;
+
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
 
             return Ok(result.Value);
@@ -101,13 +192,28 @@ namespace IdentityPlatform.Api.Controllers
 
         /// <label>طلب استعادة كلمة المرور (إرسال الرمز)</label>
         [HttpPost("forgot-password")]
+        [Authorize]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                return BadRequest(result.Error);
+
+                var ErrorResponse = result;
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
 
             return Ok(result.Value);
@@ -116,19 +222,35 @@ namespace IdentityPlatform.Api.Controllers
         /// <label>إعادة تعيين كلمة المرور باستخدام الرمز</label>
         [HttpPost("reset-password")]
         [EnableRateLimiting("StrictAuth")]
+        [Authorize]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
-                return BadRequest(result.Error);
+
+                var ErrorResponse = result;
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
 
             return Ok(result.Value);
         }
 
         /// <label>تسجيل الخروج (إبطال عائلة التوكنات)</label>
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutCommand command, CancellationToken cancellationToken)
         {
@@ -136,7 +258,22 @@ namespace IdentityPlatform.Api.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(result.Error);
+
+                var ErrorResponse = result;
+
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
 
             return Ok(result.Value);
@@ -161,11 +298,25 @@ namespace IdentityPlatform.Api.Controllers
 
             if (result.IsFailure)
             {
-                // يمكنك تحويل خطأ النطاق (Domain Error) إلى استجابة مناسبة HTTP 400 أو غيرها
-                return BadRequest(result.Error);
-            }
 
-            return Ok(new { message = "تم تغيير كلمة المرور وإبطال الجلسات السابقة بنجاح." });
+                var ErrorResponse = result;
+
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
+            }
+            string successMessage = _localizer["PasswordChange"];
+            return Ok(new { message = successMessage });
         }
 
         public sealed record ChangePasswordRequestDto(
@@ -173,30 +324,47 @@ namespace IdentityPlatform.Api.Controllers
     string NewPassword
 );
 
-        /// <summary>
-        /// إلغاء جميع جلسات المستخدم من كافة الأجهزة (Revoke All Sessions)
-        /// </summary>
-        [Authorize] // تتطلب تسجيل الدخول
-        [HttpPost("revoke-all-sessions")]
-        public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
-        {
-            // استخراج معرف المستخدم الحالي من الـ Claims
-            if (!TryGetUserId(out var userId))
-            {
-                return Unauthorized();
-            }
+        ///// <summary>
+        ///// إلغاء جميع جلسات المستخدم من كافة الأجهزة (Revoke All Sessions)
+        ///// </summary>
+        //[Authorize] // تتطلب تسجيل الدخول
+        //[HttpPost("revoke-all-sessions")]
+        //public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
+        //{
+        //    // استخراج معرف المستخدم الحالي من الـ Claims
+        //    if (!TryGetUserId(out var userId))
+        //    {
+        //        return Unauthorized();
+        //    }
 
-            var command = new RevokeAllSessionsCommand(userId);
+        //    var command = new RevokeAllSessionsCommand(userId);
 
-            var result = await _sender.Send(command, cancellationToken);
+        //    var result = await _sender.Send(command, cancellationToken);
 
-            if (result.IsFailure)
-            {
-                return BadRequest(result.Error);
-            }
+        //    if (result.IsFailure)
+        //    {
 
-            return Ok(new { message = "تم تسجيل الخروج من جميع الأجهزة وإلغاء كافة الجلسات بنجاح." });
-        }
+        //        var ErrorResponse = result;
+
+        //        var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+        //        var localizedErrors = ErrorResponse.Error.Errors?
+        //            .Select(errKey => _localizer[errKey].Value)
+        //            .ToList() ?? new List<string>();
+
+        //        return BadRequest(new
+        //        {
+        //            code = ErrorResponse.Error.GetHashCode(),
+        //            message = localizedMainMessage.Value,
+        //            errors = localizedErrors
+        //        });
+        //    }
+
+        //    string successMessage = _localizer["SessionLogoutSuccessfully"];
+
+        //    return Ok(new { message = successMessage });
+           
+        //}
 
         // دالة مساعدة لاستخراج الـ UserId من الـ User Claims
         private bool TryGetUserId(out Guid userId)
@@ -217,7 +385,21 @@ namespace IdentityPlatform.Api.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { error = result.Error.ErrorMessage });
+
+                var ErrorResponse = result;
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
             }
 
             return Ok(result.Value);
@@ -233,18 +415,66 @@ namespace IdentityPlatform.Api.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { error = result.Error.ErrorMessage });
-            }
 
-            return Ok(new { success = true, message = "MFA has been successfully verified and enabled." });
+                var ErrorResponse = result;
+
+
+                //if (ErrorResponse.Error.Errors.Count == 1)
+                //{
+                //    return BadRequest(new
+                //    {
+                //        code = ErrorResponse.Error.GetHashCode(),
+                //        message = result.ToLocalizedErrorResult(_localizer)
+                //    });
+                //}
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
+            }
+            string successMessage = _localizer["MFASuccess"];
+
+            return Ok(new { message = successMessage });
+           // return Ok(new { success = true, message = "MFA has been successfully verified and enabled." });
         }
 
         [HttpPost("change-mfa-preference")]
         public async Task<IActionResult> ChangeMfaPreference([FromBody] ChangeMfaPreferenceCommand command, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(command, cancellationToken);
-            if (result.IsFailure) return BadRequest(new { error = result.Error.ErrorMessage });
-            return Ok(new { success = true, message = "MFA preference updated successfully." });
+
+            if (result.IsFailure)
+            {
+
+                var ErrorResponse = result;
+
+
+                var localizedMainMessage = _localizer[ErrorResponse.Error.ErrorMessage];
+
+                var localizedErrors = ErrorResponse.Error.Errors?
+                    .Select(errKey => _localizer[errKey].Value)
+                    .ToList() ?? new List<string>();
+
+                return BadRequest(new
+                {
+                    code = ErrorResponse.Error.GetHashCode(),
+                    message = localizedMainMessage.Value,
+                    errors = localizedErrors
+                });
+            }
+
+            string successMessage = _localizer["MFAUpdate"];
+
+            return Ok(new { message = successMessage });
+           // return Ok(new { success = true, message = "MFA preference updated successfully." });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Common.Application.Abstractions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
+using IdentityPlatform.Identity.Domain.Tokens.Interfaces;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using IdentityPlatform.Identity.Infrastructure.Persistence;
 using IdentityPlatform.Identity.Infrastructure.Repositories;
@@ -36,6 +37,7 @@ namespace IdentityPlatform.Identity.Infrastructure
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<ITotpService, TotpService>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             return services;
         }
     }

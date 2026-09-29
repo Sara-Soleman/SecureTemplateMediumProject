@@ -1,7 +1,11 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
 using Common.Application.Interfaces;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
@@ -11,23 +15,25 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.ForgotPassword
 {
-    public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, Result<bool, IDomainError>>
+    public sealed class ForgotPasswordCommandHandler : CommandHandlerBase<ForgotPasswordCommand, bool>
     {
         private readonly IUserRepository _userRepository;
         private readonly IEmailService _emailService;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public ForgotPasswordCommandHandler(
             IUserRepository userRepository,
             IEmailService emailService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDomainEventDispatcher domainEventDispatcher)
+: base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _emailService = emailService;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<bool, IDomainError>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
+
+        protected async override Task<Result<bool, IDomainError>> ExecuteAsync(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
             // 1. البحث عن المستخدم باستخدام البريد الإلكتروني
             var user = await _userRepository.GetByUsernameOrEmailAsync(request.Email, cancellationToken);
@@ -47,13 +53,15 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ForgotPassword
             // 3. استدعاء دالة الـ Domain الموجودة في كلاس الـ User لتحديث التوكن وإطلاق الحدث (Domain Event)
             user.SetPasswordResetToken(tokenHash, expiresAt);
 
-            // 4. حفظ التغييرات في قاعدة البيانات
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             // 5. إرسال البريد الإلكتروني الذي يحتوي على رابط أو كود إعادة التعيين (rawToken)
             await _emailService.SendPasswordResetEmailAsync(user.Email, rawToken, cancellationToken);
 
             return Result.Success<bool, IDomainError>(true);
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<bool, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

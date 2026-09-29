@@ -6,6 +6,8 @@ using Common.Application.Interfaces;
 using Common.Domain.Events;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -37,10 +39,11 @@ namespace Common.Application
                 }
 
                 // ترتيب الـ Pipeline Behaviors (مهم جداً بالترتيب أدناه)
+                cfg.AddOpenBehavior(typeof(ExceptionHandlingPipelineBehavior<,>));
                 cfg.AddOpenBehavior(typeof(LoggingPipelineBehaviour<,>));
                 cfg.AddOpenBehavior(typeof(ValidationPipelineBehaviour<,>));
                 cfg.AddOpenBehavior(typeof(CommandMetricsBehavior<,>));
-                cfg.AddOpenBehavior(typeof(ExceptionHandlingPipelineBehavior<,>));
+               
             });
 
             // 2. تسجيل الـ DomainEventDispatcher
@@ -61,6 +64,21 @@ namespace Common.Application
                     .WithScopedLifetime());
             }
 
+            #region OpenTelemetry
+            services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService("YourServiceName"))
+            .WithMetrics(metrics => metrics
+                // هنا نقوم بتسجيل الـ Meter الخاص بمقاييس الأوامر التي أنشأناها
+                .AddMeter("CommandMetrics") // أو اسم الـ Meter المعرف في كلاس الـ Metrics لديك
+                
+                // هذه هي الطريقة الأسهل لرؤية المقاييس محلياً: طباعتها في الـ Console
+                .AddConsoleExporter(options =>
+                {
+                    
+                })
+                
+    );
+            #endregion
             return services;
         }
     }

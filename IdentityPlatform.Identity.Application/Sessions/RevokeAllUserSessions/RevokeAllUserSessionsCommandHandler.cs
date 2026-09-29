@@ -14,14 +14,14 @@ namespace IdentityPlatform.Identity.Application.Sessions.RevokeAllUserSessions
     : ICommandHandler<RevokeAllUserSessionsCommand, Result<bool, IDomainError>>
     {
         private readonly IUserSessionRepository _sessionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        
 
         public RevokeAllUserSessionsCommandHandler(
             IUserSessionRepository sessionRepository,
             IUnitOfWork unitOfWork)
         {
             _sessionRepository = sessionRepository;
-            _unitOfWork = unitOfWork;
+            
         }
 
         public async Task<Result<Result<bool, IDomainError>, IDomainError>> Handle(
@@ -36,7 +36,7 @@ namespace IdentityPlatform.Identity.Application.Sessions.RevokeAllUserSessions
                 _sessionRepository.Update(session);
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            
 
             var innerSuccess = Result.Success<bool, IDomainError>(true);
             return Result.Success<Result<bool, IDomainError>, IDomainError>(innerSuccess);

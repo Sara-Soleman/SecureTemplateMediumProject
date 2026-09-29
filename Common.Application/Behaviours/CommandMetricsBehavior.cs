@@ -1,6 +1,7 @@
 ﻿using Common.Application.Observability;
 using Common.Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,11 @@ namespace Common.Application.Behaviours
         where TRequest : notnull, IRequest<TResponse>
         where TResponse : notnull
     {
+        private readonly ILogger<CommandMetricsBehavior<TRequest, TResponse>> _logger;  //في حال اردت طباعة هذه المقاييس في ملفات الوغ لانه ليس لدي برامج لمعالجتها ورؤية المقاييس 
+        public CommandMetricsBehavior(ILogger<CommandMetricsBehavior<TRequest, TResponse>> logger)
+        {
+            _logger = logger;
+        }
         public async Task<TResponse> Handle(
             TRequest request,
             RequestHandlerDelegate<TResponse> next,
@@ -38,7 +44,9 @@ namespace Common.Application.Behaviours
                     });
 
                 RecordDuration(commandName, "success", startTimestamp);
-
+                var elapsedSeconds = Stopwatch.GetElapsedTime(startTimestamp).TotalSeconds;
+                _logger.LogInformation("[Metrics] Command: {CommandName} | Outcome: success | Duration: {Duration}s",
+                commandName, elapsedSeconds);
                 return response;
             }
             catch (Exception ex)

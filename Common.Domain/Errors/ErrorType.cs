@@ -19,6 +19,15 @@ namespace Common.Domain.Errors
         public static readonly ErrorType Validation = new ValidationEnum();
         public static readonly ErrorType Unexpected = new UnexpectedEnum();
 
+        //Identity
+        #region  Identity Errors
+        public static readonly ErrorType Password = new Passworderror();
+        public static readonly ErrorType Mfa = new Mfaerror();
+        public static readonly ErrorType Credential = new CredentialError();
+        public static readonly ErrorType Token = new TokenError();
+        public static readonly ErrorType Session = new SessionError();
+
+        #endregion
         // --- Nested Classes ---
         // Each specific error type is defined as a private nested class 
         // that inherits from ErrorType and passes its unique string name and integer value to the base constructor.
@@ -46,6 +55,26 @@ namespace Common.Domain.Errors
         private class UnexpectedEnum : ErrorType
         {
             public UnexpectedEnum() : base("Unexpected", 4) { }
+        }
+        private class Passworderror : ErrorType
+        {
+            public Passworderror() : base("Password error", 5) { }
+        }
+        private class Mfaerror : ErrorType
+        {
+            public Mfaerror() : base("MFA error", 6) { }
+        }
+        private class CredentialError : ErrorType
+        {
+            public CredentialError() : base("Credential error", 7) { }
+        }
+        private class TokenError : ErrorType
+        {
+            public TokenError() : base("Token error", 8) { }
+        }
+        private class SessionError : ErrorType
+        {
+            public SessionError() : base("Session error", 9) { }
         }
     }
 }

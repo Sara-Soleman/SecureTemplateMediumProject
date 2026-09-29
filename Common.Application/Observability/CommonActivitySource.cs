@@ -7,6 +7,6 @@ namespace Common.Application.Observability
 {
     public static class CommonActivitySource
     {
-        public static readonly ActivitySource Instance = new("VOEConsulting.Flame.Common");
+        public static readonly ActivitySource Instance = new("Common"); // لمراقبة هذه المكتبه في حال نريد مراقبة غيرها نضيف الاسم 
     }
 }

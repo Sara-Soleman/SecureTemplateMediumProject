@@ -1,6 +1,11 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Application.Events.Dispatchers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using MediatR;
 using System;
@@ -9,20 +14,22 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.MFA.VerifyAndEnableMfa
 {
-    public sealed class VerifyAndEnableMfaCommandHandler : IRequestHandler<VerifyAndEnableMfaCommand, Result<bool, IDomainError>>
+    public sealed class VerifyAndEnableMfaCommandHandler : CommandHandlerBase<VerifyAndEnableMfaCommand, bool>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITotpService _totpService;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
-        public VerifyAndEnableMfaCommandHandler(IUserRepository userRepository, ITotpService totpService, IUnitOfWork unitOfWork)
+        public VerifyAndEnableMfaCommandHandler(IUserRepository userRepository, ITotpService totpService, IUnitOfWork unitOfWork, IDomainEventDispatcher domainEventDispatcher)
+             : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _totpService = totpService;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<bool, IDomainError>> Handle(VerifyAndEnableMfaCommand request, CancellationToken cancellationToken)
+
+
+        protected async override Task<Result<bool, IDomainError>> ExecuteAsync(VerifyAndEnableMfaCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
             if (user == null || string.IsNullOrEmpty(user.MfaSecret))
@@ -37,9 +44,13 @@ namespace IdentityPlatform.Identity.Application.MFA.VerifyAndEnableMfa
 
             // 2. تفعيل الميزة رسمياً
             user.VerifyAndEnableMfa(user.MfaSecret);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success<bool, IDomainError>(true);
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<bool, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

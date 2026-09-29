@@ -1,9 +1,14 @@
-﻿using FluentValidation;
+﻿using Common.Domain.Errors;
+using CSharpFunctionalExtensions;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Text;
+
+using Validation = Common.Domain.Exceptions;
 
 namespace Common.Application.Behaviours
 {
@@ -37,21 +42,43 @@ namespace Common.Application.Behaviours
 
             if (failures.Count > 0)
             {
-                Activity.Current?.SetTag("validation.failed", true);
-                Activity.Current?.SetTag("validation.error_count", failures.Count);
+                var errorMessages = failures.Select(f => f.ErrorMessage).Distinct().ToList();
+                var domainError = DomainError.Validation("Validation failed", errorMessages);
 
-                var distinctProperties = failures
-                    .Select(f => f.PropertyName)
-                    .Where(p => !string.IsNullOrWhiteSpace(p))
-                    .Distinct()
-                    .Take(10)
-                    .ToArray();
+                // التحقق مما إذا كان TResponse هو Result<TValue, IDomainError>
+                var responseType = typeof(TResponse);
+                if (responseType.IsGenericType)
+                {
+                    var errorType = responseType.GetGenericArguments()[1]; // IDomainError
 
-                if (distinctProperties.Length > 0)
-                    Activity.Current?.SetTag("validation.properties", string.Join(",", distinctProperties));
+                    // البحث عن دالة الـ Failure في الSTRUCT الخاص بك وإنشاؤها مباشرة
+                    var failureMethod = responseType.GetMethod("Failure", new[] { errorType });
+                    if (failureMethod != null)
+                    {
+                        var failureResult = failureMethod.Invoke(null, new object[] { domainError });
+                        if (failureResult is TResponse typedResponse)
+                        {
+                            return typedResponse; // <-- إرجاع النتيجة الفاشلة مباشرة دون رمي أي Exception!
+                        }
+                    }
+                }
 
-                var messages = failures.Select(f => f.ErrorMessage).ToList();
-                throw new ValidationException((IEnumerable<FluentValidation.Results.ValidationFailure>)messages);
+
+                //Activity.Current?.SetTag("validation.failed", true);
+                //Activity.Current?.SetTag("validation.error_count", failures.Count);
+
+                //var distinctProperties = failures
+                //    .Select(f => f.PropertyName)
+                //    .Where(p => !string.IsNullOrWhiteSpace(p))
+                //    .Distinct()
+                //    .Take(10)
+                //    .ToArray();
+
+                //if (distinctProperties.Length > 0)
+                //    Activity.Current?.SetTag("validation.properties", string.Join(",", distinctProperties));
+
+                //var messages = failures.Select(f => f.ErrorMessage).ToList();
+                throw new Validation.ValidationException(errorMessages);
             }
 
             return await next();

@@ -12,10 +12,10 @@ using System.Text;
 namespace IdentityPlatform.Identity.Application.Sessions
 {
     public sealed class GetActiveSessionsQueryHandler
-     : IRequestHandler<GetActiveSessionsQuery, Result<Result<IEnumerable<UserSessionDto>, IDomainError>, IDomainError>>
+        : IQueryHandler<GetActiveSessionsQuery, IEnumerable<UserSessionDto>>
     {
         private readonly IUserSessionRepository _sessionRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor; // 1. حقن الـ HttpContextAccessor
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public GetActiveSessionsQueryHandler(
             IUserSessionRepository sessionRepository,
@@ -25,30 +25,31 @@ namespace IdentityPlatform.Identity.Application.Sessions
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Result<Result<IEnumerable<UserSessionDto>, IDomainError>, IDomainError>> Handle(
+        public async Task<Result<IEnumerable<UserSessionDto>, IDomainError>> Handle(
             GetActiveSessionsQuery request,
             CancellationToken cancellationToken)
         {
             var sessions = await _sessionRepository.GetActiveSessionsByUserIdAsync(request.UserId, cancellationToken);
+            if (sessions == null)
+            {
+                return Result.Failure<IEnumerable<UserSessionDto>, IDomainError>(DomainError.NotFound("Sessions not found."));
+            }
 
-            // 2. استخراج الـ sid الخاص بالجلسة الحالية من الـ Claims
+            // استخراج الـ sid الخاص بالجلسة الحالية من الـ Claims
             var currentSessionIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("sid")?.Value;
-
             Guid.TryParse(currentSessionIdClaim, out var currentSessionGuid);
 
-            // 3. المقارنة الديناميكية لتحديد IsCurrent
+            // المقارنة لتحديد IsCurrent وبناء الـ DTOs
             var dtos = sessions.Select(s => new UserSessionDto(
                 SessionId: s.Id,
                 IpAddress: s.IpAddress,
                 UserAgent: s.UserAgent,
                 CreatedAt: s.CreatedAt,
                 IsCurrent: currentSessionGuid != Guid.Empty && s.Id.Value == currentSessionGuid
-            ));
+            )).ToList();
 
-            // تغليف مزدوج للـ Result ليتطابق مع بصمة MediatR الحالية في مشروعك
-            Result<IEnumerable<UserSessionDto>, IDomainError> innerResult = Result.Success<IEnumerable<UserSessionDto>, IDomainError>(dtos);
-
-            return Result.Success<Result<IEnumerable<UserSessionDto>, IDomainError>, IDomainError>(innerResult);
+            // إرجاع النتيجة بتغليف واحد نظيف تماماً مثل GetBasketQueryHandler
+            return Result.Success<IEnumerable<UserSessionDto>, IDomainError>(dtos);
         }
     }
 }

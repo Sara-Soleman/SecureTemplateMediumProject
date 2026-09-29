@@ -1,4 +1,5 @@
-﻿using Common.Domain.Errors;
+﻿using Common.Core.Exceptions;
+using Common.Domain.Errors;
 using Common.Domain.Exceptions;
 using CSharpFunctionalExtensions;
 using MediatR;
@@ -23,6 +24,19 @@ namespace Common.Application.Behaviours
             {
                 return await next();
             }
+            catch (FluentValidation.ValidationException ex)
+            {
+                Activity.Current?.SetStatus(ActivityStatusCode.Error, "validation_failed");
+                Activity.Current?.AddException(ex);
+                Activity.Current?.SetTag("error.type", "validation");
+                Activity.Current?.SetTag("validation.error_count", ex.Errors?.Count() ?? 0);
+
+                // هنا نأخذ الـ ErrorMessage الذي كتبناه في الـ Validator (والذي هو المفتاح مثل PasswordMissingNumber)
+                var errorMessages = ex.Errors?.Select(e => e.ErrorMessage).ToList() ?? new List<string>();
+
+                var domainError = DomainError.Validation("Validation failed", errorMessages);
+                return CastOrThrow(domainError, ex);
+            }
             catch (ValidationException ex)
             {
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, "validation_failed");
@@ -30,19 +44,21 @@ namespace Common.Application.Behaviours
                 Activity.Current?.SetTag("error.type", "validation");
                 Activity.Current?.SetTag("validation.error_count", ex.Errors?.Count() ?? 0);
 
-                var domainError = DomainError.Validation(ex.Message, ex.Errors?.ToList());
+                var errorMessages = ex.Errors?.ToList() ?? new List<string>();
+
+                var domainError = DomainError.Validation(ex.Message, errorMessages);
                // var domainError = DomainError.Validation(ex.Message, ex.Errors?.Select(x => x.ErrorMessage).ToList());
                 return CastOrThrow(domainError, ex);
             }
-            //catch (FlameApplicationException ex)
-            //{
-            //    Activity.Current?.SetStatus(ActivityStatusCode.Error, "bad_request");
-            //    Activity.Current?.AddException(ex);
-            //    Activity.Current?.SetTag("error.type", "bad_request");
+            catch (myApplicationException ex)
+            {
+                Activity.Current?.SetStatus(ActivityStatusCode.Error, "bad_request");
+                Activity.Current?.AddException(ex);
+                Activity.Current?.SetTag("error.type", "bad_request");
 
-            //    var domainError = DomainError.BadRequest(ex.Message);
-            //    return CastOrThrow(domainError, ex);
-            //}
+                var domainError = DomainError.BadRequest(ex.Message);
+                return CastOrThrow(domainError, ex);
+            }
             catch (Exception ex)
             {
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, "unexpected");
@@ -56,15 +72,54 @@ namespace Common.Application.Behaviours
 
         private static TResponse CastOrThrow(IDomainError domainError, Exception ex)
         {
-            var failureResult = Result.Failure<Guid, IDomainError>(domainError);
+            //var failureResult = Result.Failure<Guid, IDomainError>(domainError);
 
-            if (failureResult is TResponse response)
+            //if (failureResult is TResponse response)
+            //{
+            //    return response;
+            //}
+
+            //throw new InvalidCastException(
+            //    $"Failed to cast failure result to {typeof(TResponse).Name} for request {typeof(TRequest).Name}.",
+            //    ex);
+            // 1. التأكد أن TResponse هو من نوع Result<TValue, IDomainError>
+
+
+            var responseType = typeof(TResponse);
+
+            // التأكد من أن TResponse هو Result<T, E>
+            if (responseType.IsGenericType)
             {
-                return response;
+                var genericArgs = responseType.GetGenericArguments();
+                if (genericArgs.Length == 2)
+                {
+                    var valueType = genericArgs[0]; // نوع القيمة (مثل AuthResponse أو Guid)
+                    var errorType = genericArgs[1]; // نوع الخطأ (IDomainError)
+
+                    // جلب المعمّر الداخلي: Result(bool isFailure, E error, T value)
+                    var internalConstructor = responseType.GetConstructor(
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                        new[] { typeof(bool), errorType, valueType });
+
+                    if (internalConstructor != null)
+                    {
+                        // إذا كان نوع القيمة Struct (Value Type) ننشئ قيمة افتراضية له، وإلا نضع null
+                        object defaultValue = valueType.IsValueType ? Activator.CreateInstance(valueType)! : null!;
+
+                        // استدعاء المعمّر بوضع isFailure = true، والخطأ، والقيمة الافتراضية
+                        var failureResult = internalConstructor.Invoke(new object[] { true, domainError, defaultValue });
+
+                        if (failureResult is TResponse typedResponse)
+                        {
+                            return typedResponse;
+                        }
+                    }
+                }
             }
 
+            // احتياطي أخير في حال حدث شيء غير متوقع
             throw new InvalidCastException(
-                $"Failed to cast failure result to {typeof(TResponse).Name} for request {typeof(TRequest).Name}.",
+                $"Failed to create failure result for type {typeof(TResponse).Name} for request {typeof(TRequest).Name}.",
                 ex);
         }
     }

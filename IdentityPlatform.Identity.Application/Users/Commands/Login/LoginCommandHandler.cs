@@ -1,6 +1,9 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.CQRS;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
 using Common.Application.Interfaces;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
 using IdentityPlatform.Identity.Domain.Dto;
@@ -16,26 +19,30 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.Login
 {
-    public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, MfaChallengeResponse>
+    public sealed class LoginCommandHandler : CommandHandlerBase<LoginCommand, MfaChallengeResponse>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IEmailService _emailService; // خدمة إرسال البريد الإلكتروني
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public LoginCommandHandler(
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
             IEmailService emailService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDomainEventDispatcher domainEventDispatcher)
+            : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _emailService = emailService;
-            _unitOfWork = unitOfWork;
+           
         }
 
-        public async Task<Result<MfaChallengeResponse, IDomainError>> Handle(LoginCommand request, CancellationToken cancellationToken)
+
+
+        protected async override Task<Result<MfaChallengeResponse, IDomainError>> ExecuteAsync(LoginCommand request, CancellationToken cancellationToken)
         {
             // 1. البحث عن المستخدم بالبريد أو اسم المستخدم
             var user = await _userRepository.GetByUsernameOrEmailAsync(request.UsernameOrEmail, cancellationToken);
@@ -44,6 +51,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
                 // حماية أمنية: عدم توضيح ما إذا كان المستخدم موجوداً أم لا بالتحديد
                 return Result.Failure<MfaChallengeResponse, IDomainError>(DomainError.InvalidCredentials());
             }
+            _user = user;
 
             // 2. التحقق من كلمة المرور
             var isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.Credential.PasswordHash);
@@ -60,7 +68,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
 
                 // حفظ الرمز مع صلاحية لمدة 5 دقائق مثلاً
                 user.SetEmailOtp(randomCode, TimeSpan.FromMinutes(5));
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+               
 
                 // إرسال الرمز عبر البريد الإلكتروني
                 await _emailService.SendEmailAsync(
@@ -70,16 +78,21 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
                 );
 
                 return Result.Success<MfaChallengeResponse, IDomainError>(
-                    new MfaChallengeResponse(user.Id, "Email", "Verification code has been sent to your email.")
+                    new MfaChallengeResponse(user.Id, "Email", "VerificationEmailSend")
                 );
             }
             else
             {
                 // إذا كان يستخدم الـ TOTP (Google Authenticator)
                 return Result.Success<MfaChallengeResponse, IDomainError>(
-                    new MfaChallengeResponse(user.Id, "Totp", "Please provide the TOTP code from your authenticator app.")
+                    new MfaChallengeResponse(user.Id, "Totp", "ProvideTOTP")
                 );
             }
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<MfaChallengeResponse, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

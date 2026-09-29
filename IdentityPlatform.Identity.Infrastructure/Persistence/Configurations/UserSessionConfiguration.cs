@@ -22,6 +22,13 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence.Configurations
                      value => new Id<UserSession>(value))
                  .IsRequired();
 
+            builder.HasOne<User>()
+              .WithMany()
+              .HasForeignKey(s => s.UserId) 
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Cascade);
+
+
             builder.Property(s => s.UserId)
                 .IsRequired();
 

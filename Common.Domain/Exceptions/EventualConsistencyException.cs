@@ -33,11 +33,3 @@ namespace Common.Domain.Exceptions
         }
     }
 }
-/*
- * Key Concepts Highlighted:
-Custom Exceptions: When built-in exceptions (like ArgumentException or InvalidOperationException) don't precisely describe a unique business or architectural problem, you can create custom exception classes to handle specialized failure scenarios cleanly.
-
-Constructor Chaining (: base(message: errorMessage)): This passes the error message up to .NET's built-in Exception class. This is important because it ensures that standard features—like writing exceptions to log files or debugging stacks—still work properly with your custom error.
-
-Defensive Initialization (details ?? new()): This ensures that the Details property is never null, making it safer and easier for calling code to inspect or iterate over error details without having to check for nulls first.
- */

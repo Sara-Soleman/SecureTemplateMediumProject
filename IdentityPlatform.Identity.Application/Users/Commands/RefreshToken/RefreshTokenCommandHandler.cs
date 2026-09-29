@@ -1,4 +1,6 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
@@ -14,23 +16,26 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
 {
-    public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponseDto, IDomainError>>
+    public sealed class RefreshTokenCommandHandler : CommandHandlerBase<RefreshTokenCommand, AuthResponseDto>
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public RefreshTokenCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDomainEventDispatcher domainEventDispatcher)
+                : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<AuthResponseDto, IDomainError>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        
+
+        protected async override Task<Result<AuthResponseDto, IDomainError>> ExecuteAsync(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
             // 1. تشفير التوكن القادم للبحث عنه في قاعدة البيانات
             var tokenHash = TokenSecurityHelper.HashToken(request.RefreshToken);
@@ -56,8 +61,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             {
                 // إذا اختلف الـ IP، فهذه محاولة اختراق محتملة (تمت سرقة الـ Token)، نقوم بإلغاء العائلة فوراً!
                 family.Revoke();
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+               
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.SecurityAlertTokenReuseDetected());
             }
 
@@ -65,8 +69,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             if (storedToken.ConsumedAt != null)
             {
                 family.Revoke();
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+               
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.SecurityAlertTokenReuseDetected());
             }
 
@@ -86,6 +89,8 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
                 familyId: family.Id,
                 tokenHash: newTokenHash,
                 lifetime: TimeSpan.FromDays(7),
+                ipAddress: request.IpAddress,   // تمرير الـ IP
+                userAgent: request.UserAgent,   // تمرير الـ UserAgent
                 id: Id<IdentityPlatform.Identity.Domain.Tokens.RefreshToken>.New()
             );
 
@@ -97,11 +102,15 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             // 8. توليد JWT Access Token جديد
             var newAccessToken = _jwtTokenGenerator.GenerateToken(user, family.SessionId);
 
-            // 9. الحفظ في قاعدة البيانات
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            
 
             // 10. إرجاع التوكنات الجديدة بنجاح
             return Result.Success<AuthResponseDto, IDomainError>(new AuthResponseDto(newAccessToken, newRawToken));
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<AuthResponseDto, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

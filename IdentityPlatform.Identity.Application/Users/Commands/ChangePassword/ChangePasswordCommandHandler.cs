@@ -1,6 +1,10 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using MediatR;
 using System;
@@ -9,23 +13,26 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.ChangePassword
 {
-    public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, Result<bool, IDomainError>>
+    public sealed class ChangePasswordCommandHandler : CommandHandlerBase<ChangePasswordCommand, bool>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public ChangePasswordCommandHandler(
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDomainEventDispatcher domainEventDispatcher)
+            : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _unitOfWork = unitOfWork;
+           
         }
 
-        public async Task<Result<bool, IDomainError>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+
+        protected async override Task<Result<bool, IDomainError>> ExecuteAsync(ChangePasswordCommand request, CancellationToken cancellationToken)
         {
             // 1. جلب المستخدم مع بياناته (تأكد من استخدام الميثود المناسبة لجلب الـ User مع الـ Credential)
             var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken); // أو GetByIdWithDetailsAsync بحسب ما هو متاح لديك
@@ -46,12 +53,15 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ChangePassword
 
             // 4. استخدام دوال الكيان الجاهزة (تحديث كلمة المرور وزيادة الإصدار لإبطال الجلسات القديمة)
             user.ChangePassword(newPasswordHash);
-            user.IncrementTokenVersion(); //  هذه الدالة موجودة عندك لإبطال التوكنات السابقة أمنياً
-
-            // 5. حفظ التغييرات
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            user.IncrementTokenVersion(); //  
+            user.RevokeAllRefreshFamilies();
 
             return Result.Success<bool, IDomainError>(true);
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<bool, IDomainError> result)
+        {
+            return _user;
         }
     }
 }

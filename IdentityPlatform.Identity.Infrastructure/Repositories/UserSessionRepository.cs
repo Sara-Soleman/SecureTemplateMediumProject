@@ -1,5 +1,7 @@
-﻿using IdentityPlatform.Identity.Domain.Sessions;
+﻿using Common.Domain;
+using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -32,9 +34,9 @@ namespace IdentityPlatform.Identity.Infrastructure.Repositories
         public async Task<IEnumerable<UserSession>> GetActiveSessionsByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
             var now = DateTimeOffset.UtcNow;
-
+            var userId1 = new Id<User>(userId);
             return await _dbContext.Set<UserSession>()
-                .Where(s => s.UserId == userId && s.RevokedAt == null && s.ExpiresAt > now)
+                .Where(s => s.UserId == userId1 && s.RevokedAt == null && s.ExpiresAt > now)
                 .ToListAsync(cancellationToken);
         }
 

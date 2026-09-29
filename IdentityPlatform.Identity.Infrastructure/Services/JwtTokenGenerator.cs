@@ -2,6 +2,8 @@
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
+using IdentityPlatform.Identity.Domain.Tokens;
+using IdentityPlatform.Identity.Domain.Tokens.Interfaces;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -19,16 +21,20 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IUserSessionRepository _sessionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        //private readonly IUnitOfWork _unitOfWork;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
 
         public JwtTokenGenerator(
             IConfiguration configuration,
             IUserSessionRepository sessionRepository,
-            IUnitOfWork unitOfWork)
+            IRefreshTokenRepository refreshTokenRepository
+            //IUnitOfWork unitOfWork
+            )
         {
             _configuration = configuration;
             _sessionRepository = sessionRepository;
-            _unitOfWork = unitOfWork;
+            //_unitOfWork = unitOfWork;
+            _refreshTokenRepository = refreshTokenRepository;
         }
 
         public JwtTokenGenerator()
@@ -92,11 +98,16 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
             CancellationToken cancellationToken)
         {
             // 1. توليد Refresh Token عشوائي
-            var refreshToken = GenerateRefreshToken();
+            var rawRefreshToken = GenerateRefreshToken();
+
+            // ب. تشفير الـ Refresh Token للحصول على الـ Hash (للتخزين الآمن في جدول RefreshTokens)
+            var tokenHash = TokenSecurityHelper.HashToken(rawRefreshToken);
 
             // 2. تحديد مدة صلاحية الـ Refresh Token (مثلاً 7 أيام أو حسب الإعدادات)
             var refreshTokenExpiryDays = double.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "7");
             var refreshTokenExpiresAt = DateTimeOffset.UtcNow.AddDays(refreshTokenExpiryDays);
+
+            var lifetime = TimeSpan.FromDays(refreshTokenExpiryDays);
 
             // 1. جلب كل الجلسات النشطة الحالية للمستخدم
             var activeSessions = await _sessionRepository.GetActiveSessionsByUserIdAsync(user.Id.Value, cancellationToken);
@@ -113,15 +124,35 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
             var sessionId = Guid.NewGuid();
             var session = UserSession.Create(
                 user.Id.Value, // تأكد إذا كان الـ UserId يتطلب .Value أو يُمرر مباشرة
-                refreshToken,
+                tokenHash,
                 ipAddress,
                 userAgent,
                 refreshTokenExpiresAt
             );
+            var family = RefreshTokenFamily.Create(
+                userId: user.Id,
+                sessionId: sessionId,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
+                lifetime: lifetime
+            );
+
+
+            await _refreshTokenRepository.AddFamilyAsync(family, cancellationToken);
+
+            var refreshTokenEntity = RefreshToken.Create(
+                familyId: family.Id,
+                tokenHash: tokenHash,
+                lifetime: lifetime,
+                ipAddress,
+                userAgent
+            );
+            await _refreshTokenRepository.AddAsync(refreshTokenEntity, cancellationToken);
 
             // 4. حفظ الجلسة في قاعدة البيانات عبر المستودع
             await _sessionRepository.AddAsync(session, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+           // await _unitOfWork.SaveChangesAsync(cancellationToken);
+
 
             // 5. توليد الـ Access Token المرتبط بمعرّف الجلسة (sessionId) الفعلي
             var accessToken = GenerateToken(user, session.Id);
@@ -131,7 +162,7 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
 
             return new AuthenticationResponseDto(
                 AccessToken: accessToken,
-                RefreshToken: refreshToken,
+                RefreshToken: rawRefreshToken,
                 ExpiresAt: accessTokenExpiresAt
             );
         }

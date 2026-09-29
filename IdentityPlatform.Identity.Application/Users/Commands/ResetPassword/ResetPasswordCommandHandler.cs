@@ -1,6 +1,10 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
+using Common.Application.Abstractions.Handlers;
+using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
@@ -10,23 +14,25 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.ResetPassword
 {
-    public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Result<bool, IDomainError>>
+    public sealed class ResetPasswordCommandHandler : CommandHandlerBase<ResetPasswordCommand,bool>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IUnitOfWork _unitOfWork;
+        private User _user;
 
         public ResetPasswordCommandHandler(
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDomainEventDispatcher domainEventDispatcher)
+            : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<bool, IDomainError>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+
+        protected async override Task<Result<bool, IDomainError>> ExecuteAsync(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
             // 1. جلب المستخدم مع الـ Credential المرتبطة به
             var user = await _userRepository.GetByUsernameOrEmailAsync(request.Email, cancellationToken);
@@ -48,9 +54,6 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ResetPassword
                 // 4. إبطال كافة الجلسات السابقة عبر رفع إصدار التوكن
                 user.IncrementTokenVersion();
 
-                // 5. حفظ التغييرات بقاعدة البيانات
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 return Result.Success<bool, IDomainError>(true);
             }
             catch (Exception)
@@ -58,6 +61,11 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ResetPassword
                 // إذا فشل التحقق في الـ Domain (مثل انتهاء الصلاحية أو خطأ التوكن) سترمي استثناءً نلتقطه هنا لنعيد خطأً نظيفاً
                 return Result.Failure<bool, IDomainError>(DomainError.InvalidOrExpiredPasswordResetToken());
             }
+        }
+
+        protected override IAggregateRoot? GetAggregateRoot(Result<bool, IDomainError> result)
+        {
+            return _user;
         }
     }
 }
