@@ -4,6 +4,8 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Authorization.Domain.Roles;
+using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Tokens.DTOs;
 using IdentityPlatform.Identity.Domain.Users;
@@ -20,17 +22,20 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IRoleRepository _roleRepository;
         private User _user;
 
         public RefreshTokenCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
+            IRoleRepository roleRepository,
             IUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
                 : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _roleRepository = roleRepository;
         }
 
         
@@ -99,8 +104,16 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             // 7. استهلاك التوكن القديم وربطه بالتوكن الجديد
             storedToken.Consume(newRefreshToken.Id);
 
+            var userRoles = await _roleRepository.GetRolesByUserIdAsync(user.Id.Value, cancellationToken);
+
+            var roleNames = userRoles.Select(r => r.Name).ToList();
+            var permissions = userRoles
+                .SelectMany(r => r.Permissions)
+                .Distinct()
+                .ToList();
+
             // 8. توليد JWT Access Token جديد
-            var newAccessToken = _jwtTokenGenerator.GenerateToken(user, family.SessionId);
+            var newAccessToken = _jwtTokenGenerator.GenerateToken(user, family.SessionId, roleNames, permissions);
 
             
 

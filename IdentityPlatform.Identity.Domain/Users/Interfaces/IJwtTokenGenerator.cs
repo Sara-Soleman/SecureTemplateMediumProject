@@ -7,7 +7,7 @@ namespace IdentityPlatform.Identity.Domain.Users.Interfaces
 {
     public interface IJwtTokenGenerator
     {
-        string GenerateToken(User user, Guid sessionId);
+        string GenerateToken(User user, Guid sessionId, IEnumerable<string> roles, IEnumerable<string> permissions);
         Task<AuthenticationResponseDto> GenerateTokensAsync(User user,
             string ipAddress = "Unknown",
             string userAgent = "Unknown",

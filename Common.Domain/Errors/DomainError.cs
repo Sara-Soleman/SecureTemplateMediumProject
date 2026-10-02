@@ -57,7 +57,17 @@ namespace Common.Domain.Errors
         public static DomainError SessionNotFound(string? message = "SessionNotFound") =>
             new(message ?? "SessionNotFound", ErrorType.Session);
         #endregion
+        public static DomainError RoleAlreadyExists(string? message = "RoleAlreadyExists") =>
+            new(message ?? "RoleAlreadyExists", ErrorType.Role);
+        public static DomainError RoleNotFound(string? message = "RoleNotFound") =>
+            new(message ?? "RoleNotFound", ErrorType.Role);
+        public static DomainError UserAlreadyHasRole(string? message = "UserAlreadyHasRole") =>
+            new(message ?? "UserAlreadyHasRole", ErrorType.Role);
+        public static DomainError UserRoleNotFound(string? message = "UserRoleNotFound") =>
+            new(message ?? "UserRoleNotFound", ErrorType.Role);
+        #region Role Errors
 
+        #endregion
         // --- Constructor ---
         // The constructor is marked 'private' so developers are forced to use the 
         // clean static factory methods above rather than typing 'new DomainError(...)' directly.

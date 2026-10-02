@@ -186,6 +186,12 @@
   <data name="ProvideTOTP" xml:space="preserve">
     <value>Please provide the TOTP code from your authenticator app.</value>
   </data>
+  <data name="RoleNameRequired" xml:space="preserve">
+    <value>Role name is required.</value>
+  </data>
+  <data name="RoleNameLong" xml:space="preserve">
+    <value>Role name must not exceed 100 characters.</value>
+  </data>
   <data name="SecurityAlertTokenReuseDetected" xml:space="preserve">
     <value>Token reuse detected.</value>
   </data>
@@ -221,5 +227,35 @@
   </data>
   <data name="VerificationEmailSend" xml:space="preserve">
     <value>Verification code has been sent to your email.</value>
+  </data>
+  <data name="DescriptionLong" xml:space="preserve">
+    <value>Description must not exceed 250 characters.</value>
+  </data>
+  <data name="PermissionsNotNull" xml:space="preserve">
+    <value>Permissions list cannot be null.</value>
+  </data>
+  <data name="RoleAlreadyExists" xml:space="preserve">
+    <value>Role Already Exists.</value>
+  </data>
+  <data name="UserIDrequired." xml:space="preserve">
+    <value>User ID is required.</value>
+  </data>
+  <data name="RoleIDrequired." xml:space="preserve">
+    <value>Role ID is required.</value>
+  </data>
+  <data name="RoleNotFound" xml:space="preserve">
+    <value>Role Not Found</value>
+  </data>
+  <data name="UserAlreadyHasRole" xml:space="preserve">
+    <value>User Already Has Role</value>
+  </data>
+  <data name="UserRoleNotFound" xml:space="preserve">
+    <value>User Role Not Found</value>
+  </data>
+  <data name="Roleremoved" xml:space="preserve">
+    <value>Role removed from user successfully.</value>
+  </data>
+  <data name="Roleassignedtouser" xml:space="preserve">
+    <value>Role assigned to user successfully.</value>
   </data>
 </root>

@@ -22,6 +22,44 @@ namespace IdentityPlatform.Identity.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("IdentityPlatform.Authorization.Domain.Roles.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Permissions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("PermissionsJson");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("IdentityPlatform.Authorization.Domain.Roles.UserRole", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.ToTable("UserRoles", (string)null);
+                });
+
             modelBuilder.Entity("IdentityPlatform.Identity.Domain.Sessions.UserSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -223,6 +261,12 @@ namespace IdentityPlatform.Identity.Infrastructure.Migrations
 
             modelBuilder.Entity("IdentityPlatform.Identity.Domain.Sessions.UserSession", b =>
                 {
+                    b.HasOne("IdentityPlatform.Identity.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("IdentityPlatform.Identity.Domain.Users.User", null)
                         .WithMany("Sessions")
                         .HasForeignKey("UserId1");

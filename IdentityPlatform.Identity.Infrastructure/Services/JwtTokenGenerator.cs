@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
@@ -23,11 +24,13 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
         private readonly IUserSessionRepository _sessionRepository;
         //private readonly IUnitOfWork _unitOfWork;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IRoleRepository _roleRepository;
 
         public JwtTokenGenerator(
             IConfiguration configuration,
             IUserSessionRepository sessionRepository,
-            IRefreshTokenRepository refreshTokenRepository
+            IRefreshTokenRepository refreshTokenRepository,
+            IRoleRepository roleRepository
             //IUnitOfWork unitOfWork
             )
         {
@@ -35,6 +38,7 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
             _sessionRepository = sessionRepository;
             //_unitOfWork = unitOfWork;
             _refreshTokenRepository = refreshTokenRepository;
+            _roleRepository = roleRepository;
         }
 
         public JwtTokenGenerator()
@@ -42,17 +46,30 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
         }
 
         // هذه هي دالتك الأصلية لتوليد الـ Access Token
-        public string GenerateToken(User user, Guid sessionId)
+        public string GenerateToken(User user, Guid sessionId, IEnumerable<string> roles, IEnumerable<string> permissions)
         {
             var claims = new List<Claim>
         {
+                new Claim(ClaimTypes.Name, user.Username),
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.Value.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim("sid", sessionId.ToString()), // ربط التوكن بالجلسة الفريدة
-            new Claim("tokenVersion", user.TokenVersion.ToString())
+            new Claim("tokenVersion", user.TokenVersion.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+           
+            foreach (var permission in permissions)
+            {
+                claims.Add(new Claim("permission", permission));
+
+            }
             //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"] ?? "YourSuperSecretKeyHereThatIsLongEnough12345!"));
             //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -151,11 +168,16 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
 
             // 4. حفظ الجلسة في قاعدة البيانات عبر المستودع
             await _sessionRepository.AddAsync(session, cancellationToken);
-           // await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+            // await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var userRoles = await _roleRepository.GetRolesByUserIdAsync(user.Id.Value, cancellationToken);
+            var roleNames = userRoles.Select(r => r.Name).ToList();
+            var permissions = userRoles
+                .SelectMany(r => r.Permissions)
+                .Distinct()
+                .ToList();
 
             // 5. توليد الـ Access Token المرتبط بمعرّف الجلسة (sessionId) الفعلي
-            var accessToken = GenerateToken(user, session.Id);
+            var accessToken = GenerateToken(user, session.Id,roleNames,permissions);
 
             var expiryMinutes = double.Parse(_configuration["Jwt:ExpiryMinutes"] ?? "60");
             var accessTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(expiryMinutes);

@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.RefreshToken;
@@ -19,17 +20,20 @@ namespace TestsProj
         private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly RefreshTokenCommandHandler _handler;
-
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
         public RefreshTokenCommandHandlerSuccessTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _jwtTokenGeneratorMock = new Mock<IJwtTokenGenerator>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+
 
             _handler = new RefreshTokenCommandHandler(
                 _userRepositoryMock.Object,
                 _jwtTokenGeneratorMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 
@@ -67,7 +71,7 @@ namespace TestsProj
                 .Setup(gen => gen.GenerateToken(user, sessionId))
                 .Returns("new-mock-jwt-access-token");
 
-            var command = new RefreshTokenCommand(rawToken, ipAddress);
+            var command = new RefreshTokenCommand(rawToken, ipAddress, "TestAgent");
 
             // --- 2. Act (التنفيذ) ---
             var result = await _handler.Handle(command, CancellationToken.None);

@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.ChangePassword;
 using IdentityPlatform.Identity.Domain.Users;
@@ -16,17 +17,20 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IPasswordHasher> _passwordHasherMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly ChangePasswordCommandHandler _handler;
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public ChangePasswordCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _passwordHasherMock = new Mock<IPasswordHasher>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
             _handler = new ChangePasswordCommandHandler(
                 _userRepositoryMock.Object,
                 _passwordHasherMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 

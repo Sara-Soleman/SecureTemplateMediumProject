@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.RevokeAllSessions;
 using IdentityPlatform.Identity.Domain.Users;
@@ -15,15 +16,19 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly RevokeAllSessionsCommandHandler _handler;
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public RevokeAllSessionsCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+
 
             _handler = new RevokeAllSessionsCommandHandler(
                 _userRepositoryMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 

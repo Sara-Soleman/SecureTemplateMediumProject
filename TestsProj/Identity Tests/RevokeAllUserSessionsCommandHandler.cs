@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Sessions.RevokeAllUserSessions;
@@ -16,15 +17,17 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUserSessionRepository> _sessionRepositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly RevokeAllUserSessionsCommandHandler _handler;
-
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
         public RevokeAllUserSessionsCommandHandlerTests()
         {
             _sessionRepositoryMock = new Mock<IUserSessionRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _handler = new RevokeAllUserSessionsCommandHandler(_sessionRepositoryMock.Object, _unitOfWorkMock.Object);
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+
+            _handler = new RevokeAllUserSessionsCommandHandler(_sessionRepositoryMock.Object, _unitOfWorkMock.Object,_domainEventDispatcherMock.Object);
         }
 
-        [Fact]
+        [Fact] 
         public async Task Handle_WithValidUserId_ShouldRevokeAllActiveSessionsAndSave()
         {
             // Arrange
@@ -49,7 +52,7 @@ namespace TestsProj.Identity_Tests
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Value.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeTrue();
 
             // التأكد من أنه تم استدعاء التحديث وحفظ التغييرات
             _sessionRepositoryMock.Verify(r => r.Update(It.IsAny<UserSession>()), Times.Exactly(2));

@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.MFA.ChangeMfaType;
 using IdentityPlatform.Identity.Domain.Users;
@@ -17,11 +18,14 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly ChangeMfaPreferenceCommandHandler _handler;
 
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
+
         public ChangeMfaPreferenceCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _handler = new ChangeMfaPreferenceCommandHandler(_userRepositoryMock.Object, _unitOfWorkMock.Object);
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+            _handler = new ChangeMfaPreferenceCommandHandler(_userRepositoryMock.Object, _unitOfWorkMock.Object, _domainEventDispatcherMock.Object);
         }
 
         [Fact]

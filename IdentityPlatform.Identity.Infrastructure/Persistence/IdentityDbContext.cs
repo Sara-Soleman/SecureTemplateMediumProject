@@ -1,16 +1,20 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
+using IdentityPlatform.Authorization.Domain.Roles;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Users;
+using IdentityPlatform.Identity.Infrastructure.Persistence.Configurations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Net;
 using System.Reflection.Emit;
 using System.Text;
+
 
 namespace IdentityPlatform.Identity.Infrastructure.Persistence
 {
@@ -32,6 +36,13 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
         public DbSet<RefreshTokenFamily> RefreshTokenFamilies => Set<RefreshTokenFamily>();
         public DbSet<UserSession> UserSessions => Set<UserSession>();
 
+
+
+        //ROLES
+        public DbSet<Role> Roles => Set<Role>();
+        public DbSet<UserRole> UserRoles => Set<UserRole>();
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -40,6 +51,14 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
         .Where(t => t.ClrType.IsGenericType && t.ClrType.GetGenericTypeDefinition() == typeof(Id<>))
         .Select(t => t.ClrType)
         .ToList();
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserSessionConfiguration());
+            modelBuilder.ApplyConfiguration(new CredentialConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenFamilyConfiguration());
+
+            modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
 
             foreach (var type in typesToIgnore)
             {

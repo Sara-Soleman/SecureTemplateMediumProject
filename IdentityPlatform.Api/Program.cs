@@ -1,6 +1,10 @@
 using Common.Application;
 using Common.Domain;
+using Common.Infrastructure.Caching;
 using IdentityPlatform.Api.Middleware;
+using IdentityPlatform.Authorization.Application;
+using IdentityPlatform.Authorization.Domain;
+using IdentityPlatform.Authorization.Infrastructure;
 using IdentityPlatform.Identity.Application;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Users;
@@ -45,7 +49,12 @@ try
     builder.Host.UseSerilog();
 
 #endregion
-   
+
+    #region Cache 
+    builder.Services.AddMemoryCache();
+    builder.Services.AddSingleton<CachedRepositoryService>();
+    #endregion
+
     //var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
@@ -57,10 +66,10 @@ try
     // في ملف Program.cs
     builder.Services.AddIdentityApplication();
 
-
+    builder.Services.AddAuthorizationInfrastructure();
 
     builder.Services.AddIdentityInfrastructure(builder.Configuration);
-
+    builder.Services.AddAuthorizationApplication();
     #region JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
     string secretKey = jwtSettings["Secret"] ?? "YourSuperSecretKeyHereThatIsLongEnough12345!";
@@ -149,6 +158,18 @@ try
     });
     #endregion
 
+    #region Authorization
+    builder.Services.AddAuthorization(options =>
+    {
+       
+        foreach (var permission in Permissions.GetAllPermissions())
+        {
+            options.AddPolicy(permission, policy =>
+                policy.RequireClaim("permission", permission));
+        }
+    });
+    #endregion
+
     #region Localization
     // 1. إضافة خدمة الترجمة وتحديد مجلد الملفات (Resources)
     builder.Services.AddLocalization(options => options.ResourcesPath = "Resourses");
@@ -157,7 +178,7 @@ try
     builder.Services.AddControllers()
         .AddDataAnnotationsLocalization();
     #endregion
-
+   
 
     #region Rate Limiting متعدد المستويات
 

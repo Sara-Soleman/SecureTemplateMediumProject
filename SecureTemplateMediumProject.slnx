@@ -4,7 +4,12 @@
   </Folder>
   <Folder Name="/IdentityPlatform/" />
   <Folder Name="/IdentityPlatform/Audit/" />
-  <Folder Name="/IdentityPlatform/Authorization/" />
+  <Folder Name="/IdentityPlatform/Authorization/">
+    <File Path="ReadMe.txt" />
+    <Project Path="IdentityPlatform.Authorization.Application/IdentityPlatform.Authorization.Application.csproj" Id="a18156cb-0edb-4098-a55c-f2cc21205c0e" />
+    <Project Path="IdentityPlatform.Authorization.Domain/IdentityPlatform.Authorization.Domain.csproj" Id="083de798-534c-4d39-a97a-977a5c740ee9" />
+    <Project Path="IdentityPlatform.Authorization.Infrastructure/IdentityPlatform.Authorization.Infrastructure.csproj" Id="b066adfa-bd9d-4720-9ef9-7c0f2cf67cb3" />
+  </Folder>
   <Folder Name="/IdentityPlatform/Identity/">
     <Project Path="IdentityPlatform.Identity.Application/IdentityPlatform.Identity.Application.csproj" />
     <Project Path="IdentityPlatform.Identity.Domain/IdentityPlatform.Identity.Domain.csproj" />

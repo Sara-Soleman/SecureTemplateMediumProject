@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.Login;
 using IdentityPlatform.Identity.Domain.Dto;
@@ -21,6 +22,7 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly VerifyLoginMfaCommandHandler _handler;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public VerifyLoginMfaCommandHandlerTests()
         {
@@ -29,13 +31,16 @@ namespace TestsProj.Identity_Tests
             _tokenServiceMock = new Mock<IJwtTokenGenerator>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+
 
             _handler = new VerifyLoginMfaCommandHandler(
                 _userRepositoryMock.Object,
                 _totpServiceMock.Object,
                 _tokenServiceMock.Object,
                 _unitOfWorkMock.Object,
-                _httpContextAccessorMock.Object
+                _httpContextAccessorMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 

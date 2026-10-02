@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Application.Interfaces;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.Login;
@@ -19,6 +20,7 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IEmailService> _emailServiceMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly LoginCommandHandler _handler;
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public LoginCommandHandlerTests()
         {
@@ -26,12 +28,15 @@ namespace TestsProj.Identity_Tests
             _passwordHasherMock = new Mock<IPasswordHasher>();
             _emailServiceMock = new Mock<IEmailService>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
+
 
             _handler = new LoginCommandHandler(
                 _userRepositoryMock.Object,
                 _passwordHasherMock.Object,
                 _emailServiceMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 

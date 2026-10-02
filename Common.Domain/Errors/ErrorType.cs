@@ -28,6 +28,10 @@ namespace Common.Domain.Errors
         public static readonly ErrorType Session = new SessionError();
 
         #endregion
+
+        #region Role Errors
+        public static readonly ErrorType Role = new RoleError();
+        #endregion
         // --- Nested Classes ---
         // Each specific error type is defined as a private nested class 
         // that inherits from ErrorType and passes its unique string name and integer value to the base constructor.
@@ -75,6 +79,10 @@ namespace Common.Domain.Errors
         private class SessionError : ErrorType
         {
             public SessionError() : base("Session error", 9) { }
+        }
+        private class RoleError : ErrorType
+        {
+            public RoleError() : base("Role error", 10) { }
         }
     }
 }

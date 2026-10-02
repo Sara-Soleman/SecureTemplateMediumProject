@@ -186,6 +186,12 @@
   <data name="ProvideTOTP" xml:space="preserve">
     <value>يرجى إدخال رمز TOTP من تطبيق المصادقة الخاص بك.</value>
   </data>
+  <data name="RoleNameRequired" xml:space="preserve">
+    <value>يرجى ادخال اسم الدور.</value>
+  </data>
+  <data name="RoleNameLong" xml:space="preserve">
+    <value>يجب ألا يتجاوز الاسم 100 محرف</value>
+  </data>
   <data name="SecurityAlertTokenReuseDetected" xml:space="preserve">
     <value>تم رصد إعادة استخدام الرمز المميز.</value>
   </data>
@@ -221,5 +227,35 @@
   </data>
   <data name="VerificationEmailSend" xml:space="preserve">
     <value>تم إرسال رمز التحقق إلى بريدك الإلكتروني.</value>
+  </data>
+  <data name="DescriptionLong" xml:space="preserve">
+    <value>يجب الا يتجاوز الوصف 250 محرف.</value>
+  </data>
+  <data name="PermissionsNotNull" xml:space="preserve">
+    <value>يجب الا تكون قائمة السماحيات فارغة.</value>
+  </data>
+  <data name="RoleAlreadyExists" xml:space="preserve">
+    <value>الدور موجود بالفعل.</value>
+  </data>
+  <data name="UserIDrequired." xml:space="preserve">
+    <value>معرف المستخدم مطلوب</value>
+  </data>
+  <data name="RoleIDrequired." xml:space="preserve">
+    <value>اسم الدور مطلوب</value>
+  </data>
+  <data name="RoleNotFound" xml:space="preserve">
+    <value>الدور غير موجود</value>
+  </data>
+  <data name="UserAlreadyHasRole" xml:space="preserve">
+    <value>المستخدم لديه هذا الدور بالفعل</value>
+  </data>
+  <data name="UserRoleNotFound" xml:space="preserve">
+    <value>لم يتم إيجاد الدور لدى المستخدم </value>
+  </data>
+  <data name="Roleremoved" xml:space="preserve">
+    <value>تم حذف الدور بنجاح</value>
+  </data>
+  <data name="Roleassignedtouser" xml:space="preserve">
+    <value>تم اسناد الدور للمستخدم بنجاح</value>
   </data>
 </root>

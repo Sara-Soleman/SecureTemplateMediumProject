@@ -6,6 +6,7 @@ using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
+using IdentityPlatform.Identity.Infrastructure.Persistence;
 using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
 using System;
@@ -46,14 +47,14 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Logout
             }
 
             var family = storedToken.Family;
-
+            _user = await _userRepository.GetBySessionIdAsync(family.SessionId, cancellationToken);
             // 3. التحقق مما إذا كانت العائلة ملغاة مسبقاً
             if (family.RevokedAt == null)
             {
                 // 4. إلغاء عائلة التوكنات بالكامل لإنهاء الجلسة
                 family.Revoke();
 
-
+                
             }
 
             return Result.Success<bool, IDomainError>(true);

@@ -1,4 +1,5 @@
 ﻿using Common.Application.Abstractions;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.Users.Commands.Logout;
@@ -18,15 +19,18 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly LogoutCommandHandler _handler;
+        private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public LogoutCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
             _handler = new LogoutCommandHandler(
                 _userRepositoryMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                _domainEventDispatcherMock.Object
             );
         }
 
@@ -42,6 +46,9 @@ namespace TestsProj.Identity_Tests
                 .Setup(repo => repo.GetRefreshTokenByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((RefreshToken?)null);
 
+            _unitOfWorkMock
+        .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        .ReturnsAsync(1);
             // --- Act ---
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -50,7 +57,7 @@ namespace TestsProj.Identity_Tests
             result.Value.Should().BeTrue();
 
             // التأكد من عدم استدعاء الحفظ لأن شيئاً لم يتغير
-            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never());
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
         }
 
         [Fact]
