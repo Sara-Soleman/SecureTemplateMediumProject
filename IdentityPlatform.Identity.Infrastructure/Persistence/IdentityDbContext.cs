@@ -1,7 +1,6 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
-using IdentityPlatform.Authorization.Domain.Roles;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Users;
@@ -38,14 +37,24 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
 
 
 
-        //ROLES
-        public DbSet<Role> Roles => Set<Role>();
-        public DbSet<UserRole> UserRoles => Set<UserRole>();
 
 
+
+        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ActionName).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.UserId);
+                entity.Property(e => e.Timestamp).IsRequired();
+            });
+
+
 
             var typesToIgnore = modelBuilder.Model.GetEntityTypes()
         .Where(t => t.ClrType.IsGenericType && t.ClrType.GetGenericTypeDefinition() == typeof(Id<>))
@@ -57,8 +66,7 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
             modelBuilder.ApplyConfiguration(new RefreshTokenFamilyConfiguration());
 
-            modelBuilder.ApplyConfiguration(new RoleConfiguration());
-            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
+           
 
             foreach (var type in typesToIgnore)
             {

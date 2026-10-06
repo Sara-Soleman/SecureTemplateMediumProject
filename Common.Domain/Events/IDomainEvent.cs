@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +10,7 @@ namespace Common.Domain.Events
     /// It inherits from 'INotification' (commonly used with libraries like MediatR), 
     /// meaning any implementing event can be easily published and handled asynchronously across the application.
     /// </summary>
-    public interface IDomainEvent : INotification
+    public interface IDomainEvent 
     {
         // The version number of the event schema. 
         // This helps manage backward compatibility if the structure of the event changes in the future.

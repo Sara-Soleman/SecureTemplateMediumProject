@@ -5,6 +5,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Enums;
@@ -16,7 +17,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.Login
 {
-    public sealed class VerifyLoginMfaCommandHandler : CommandHandlerBase<VerifyLoginMfaCommand, AuthenticationResponseDto>
+    public sealed class VerifyLoginMfaCommandHandler : CommandHandlerBase<VerifyLoginMfaCommand, AuthenticationResponseDto, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITotpService _totpService;
@@ -28,7 +29,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
             IUserRepository userRepository,
             ITotpService totpService,
             IJwtTokenGenerator tokenService,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
             IDomainEventDispatcher domainEventDispatcher)
 : base(domainEventDispatcher, unitOfWork)

@@ -24,7 +24,7 @@ namespace IdentityPlatform.Authorization.Application
 
             // تسجيل جميع الـ Validators الموجودة في الـ Assembly تلقائياً
             services.AddValidatorsFromAssembly(assembly);
-
+            services.AddHttpContextAccessor();
 
             return services;
         }

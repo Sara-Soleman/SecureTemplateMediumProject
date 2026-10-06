@@ -4,6 +4,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using MediatR;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.ChangePassword
 {
-    public sealed class ChangePasswordCommandHandler : CommandHandlerBase<ChangePasswordCommand, bool>
+    public sealed class ChangePasswordCommandHandler : CommandHandlerBase<ChangePasswordCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
@@ -22,7 +23,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ChangePassword
         public ChangePasswordCommandHandler(
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
         {

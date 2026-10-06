@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common.Application\Common.Application.csproj" />
+    <ProjectReference Include="..\IdentityPlatform.Authorization.Application\IdentityPlatform.Authorization.Application.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Identity.Application\IdentityPlatform.Identity.Application.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Identity.Domain\IdentityPlatform.Identity.Domain.csproj" />
   </ItemGroup>

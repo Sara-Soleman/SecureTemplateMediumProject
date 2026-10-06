@@ -1,5 +1,4 @@
 ﻿using Common.Domain;
-using IdentityPlatform.Identity.Domain.Users.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;

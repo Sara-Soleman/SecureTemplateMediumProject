@@ -4,10 +4,10 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Helpers;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
-using IdentityPlatform.Identity.Infrastructure.Persistence;
-using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -15,14 +15,14 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.Logout
 {
-    public sealed class LogoutCommandHandler : CommandHandlerBase<LogoutCommand, bool>
+    public sealed class LogoutCommandHandler : CommandHandlerBase<LogoutCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private User _user;
 
         public LogoutCommandHandler(
             IUserRepository userRepository,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
                 : base(domainEventDispatcher, unitOfWork)
         {

@@ -5,9 +5,10 @@ using Common.Application.Interfaces;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Helpers;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
-using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.ForgotPassword
 {
-    public sealed class ForgotPasswordCommandHandler : CommandHandlerBase<ForgotPasswordCommand, bool>
+    public sealed class ForgotPasswordCommandHandler : CommandHandlerBase<ForgotPasswordCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly IEmailService _emailService;
@@ -24,7 +25,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.ForgotPassword
         public ForgotPasswordCommandHandler(
             IUserRepository userRepository,
             IEmailService emailService,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
 : base(domainEventDispatcher, unitOfWork)
         {

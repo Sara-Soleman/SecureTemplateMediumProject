@@ -1,6 +1,5 @@
 ﻿using Common.Domain;
 using IdentityPlatform.Authorization.Domain.Roles.Events;
-using IdentityPlatform.Identity.Domain.Users.Events;
 using System;
 using System.Collections.Generic;
 using System.Security;
@@ -17,7 +16,8 @@ namespace IdentityPlatform.Authorization.Domain.Roles
         public string Description { get; private set; }
         public IReadOnlyCollection<string> Permissions => _permissions.AsReadOnly();
 
-
+        public bool IsSystem { get; private set; }      
+        public string? CreatedBy { get; private set; }   
 
         private Role( string name, string description) 
         {
@@ -63,10 +63,15 @@ namespace IdentityPlatform.Authorization.Domain.Roles
             RaiseDomainEvent(new UserPermissionRemovedEvent(this.Id, permission));
         }
 
-        public void UpdateDetails(string name, string description)
+        public void UpdateDetails(string name, string description,List<string> permissions)
         {
             Name = name;
             Description = description;
+            _permissions.Clear();
+            if (permissions != null && permissions.Count > 0)
+            {
+                _permissions.AddRange(permissions);
+            }
             RaiseDomainEvent(new UserPermissionUpdatedEvent(this.Id, name ,description));
         }
     }

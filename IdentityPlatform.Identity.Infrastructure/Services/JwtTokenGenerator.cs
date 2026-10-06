@@ -1,5 +1,6 @@
 ﻿using Common.Application.Abstractions;
-using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
+using IdentityPlatform.Identity.Application.Authorization;
+using IdentityPlatform.Identity.Application.Helpers;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
@@ -24,13 +25,13 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
         private readonly IUserSessionRepository _sessionRepository;
         //private readonly IUnitOfWork _unitOfWork;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
-        private readonly IRoleRepository _roleRepository;
+        private readonly IAuthorizationReader _authorizationReader;
 
         public JwtTokenGenerator(
             IConfiguration configuration,
             IUserSessionRepository sessionRepository,
             IRefreshTokenRepository refreshTokenRepository,
-            IRoleRepository roleRepository
+            IAuthorizationReader authorizationReader
             //IUnitOfWork unitOfWork
             )
         {
@@ -38,7 +39,7 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
             _sessionRepository = sessionRepository;
             //_unitOfWork = unitOfWork;
             _refreshTokenRepository = refreshTokenRepository;
-            _roleRepository = roleRepository;
+            _authorizationReader = authorizationReader;
         }
 
         public JwtTokenGenerator()
@@ -169,15 +170,10 @@ namespace IdentityPlatform.Identity.Infrastructure.Services
             // 4. حفظ الجلسة في قاعدة البيانات عبر المستودع
             await _sessionRepository.AddAsync(session, cancellationToken);
             // await _unitOfWork.SaveChangesAsync(cancellationToken);
-            var userRoles = await _roleRepository.GetRolesByUserIdAsync(user.Id.Value, cancellationToken);
-            var roleNames = userRoles.Select(r => r.Name).ToList();
-            var permissions = userRoles
-                .SelectMany(r => r.Permissions)
-                .Distinct()
-                .ToList();
+            var rolesAndPermissions = await _authorizationReader.GetUserAuthorizationDataAsync(user.Id.Value, cancellationToken);
 
             // 5. توليد الـ Access Token المرتبط بمعرّف الجلسة (sessionId) الفعلي
-            var accessToken = GenerateToken(user, session.Id,roleNames,permissions);
+            var accessToken = GenerateToken(user, session.Id, rolesAndPermissions.Roles, rolesAndPermissions.Permissions);
 
             var expiryMinutes = double.Parse(_configuration["Jwt:ExpiryMinutes"] ?? "60");
             var accessTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(expiryMinutes);

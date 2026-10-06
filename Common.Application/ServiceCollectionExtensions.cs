@@ -1,10 +1,14 @@
 ﻿using Common.Application.Abstractions.DomainEvents;
+using Common.Application.AuditandLogging;
+using Common.Application.Authorizations;
 using Common.Application.Behaviours;
 using Common.Application.Email;
 using Common.Application.Events.Dispatchers;
 using Common.Application.Interfaces;
 using Common.Domain.Events;
 using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -78,6 +82,10 @@ namespace Common.Application
                 })
                 
     );
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuditLoggingBehavior<,>));
+            services.AddSingleton<IAuthorizationPolicyProvider, DynamicAuthorizationPolicyProvider>();
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
             #endregion
             return services;
         }

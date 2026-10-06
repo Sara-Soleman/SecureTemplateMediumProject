@@ -6,9 +6,9 @@ using Common.Application.Events.Dispatchers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Authorization.Application.Persistence;
 using IdentityPlatform.Authorization.Domain.Roles;
 using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
-using IdentityPlatform.Identity.Domain.Users;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -16,11 +16,11 @@ using System.Text;
 
 namespace IdentityPlatform.Authorization.Application.Roles.Commands.AssignRoleToUser
 {
-    public class AssignRoleToUserCommandHandler : CommandHandlerBase<AssignRoleToUserCommand, Unit>
+    public class AssignRoleToUserCommandHandler : CommandHandlerBase<AssignRoleToUserCommand, Unit, IAuthorizationUnitOfWork>
     {
         private readonly IRoleRepository _roleRepository;
         private Role _role;
-        public AssignRoleToUserCommandHandler(IRoleRepository roleRepository, IUnitOfWork unitOfWork,
+        public AssignRoleToUserCommandHandler(IRoleRepository roleRepository, IAuthorizationUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork) { 
             _roleRepository = roleRepository;
@@ -45,7 +45,7 @@ namespace IdentityPlatform.Authorization.Application.Roles.Commands.AssignRoleTo
             }
 
             // 3. إنشاء ربط المستخدم بالدور باستخدام الـ Factory
-            var userRole = UserRole.Create(new Id<User>(request.UserId), new Id<Role>(request.RoleId));
+            var userRole = UserRole.Create((request.UserId), new Id<Role>(request.RoleId));
 
             await _roleRepository.AddUserRoleAsync(userRole, cancellationToken);
             return Result.Success<Unit, IDomainError>(Unit.Value);

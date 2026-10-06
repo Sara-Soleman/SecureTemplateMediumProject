@@ -240,7 +240,7 @@
   <data name="UserIDrequired." xml:space="preserve">
     <value>معرف المستخدم مطلوب</value>
   </data>
-  <data name="RoleIDrequired." xml:space="preserve">
+  <data name="RoleIDrequired" xml:space="preserve">
     <value>اسم الدور مطلوب</value>
   </data>
   <data name="RoleNotFound" xml:space="preserve">

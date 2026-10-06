@@ -4,6 +4,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
@@ -14,7 +15,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.MFA.SetupMfa
 {
-    public sealed class SetupMfaCommandHandler : CommandHandlerBase<SetupMfaCommand, MfaSetupResponseDto>
+    public sealed class SetupMfaCommandHandler : CommandHandlerBase<SetupMfaCommand, MfaSetupResponseDto, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITotpService _totpService;
@@ -23,7 +24,7 @@ namespace IdentityPlatform.Identity.Application.MFA.SetupMfa
         public SetupMfaCommandHandler(
             IUserRepository userRepository,
             ITotpService totpService,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
         {

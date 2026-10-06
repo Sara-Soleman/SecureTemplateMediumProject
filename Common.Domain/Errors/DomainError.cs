@@ -33,6 +33,8 @@ namespace Common.Domain.Errors
         // Used as a fallback catch-all for unexpected system errors.
         public static DomainError UnExpected(string? message = "UnExpected") =>
             new(message ?? "UnExpected", ErrorType.Unexpected);
+        public static DomainError Unauthorized(string? message = "Unauthorized") =>
+            new(message ?? "Unauthorized", ErrorType.Unexpected);
 
         #region Identity Errors
         public static DomainError EmailOrUsernameAlreadyExists(string? message = "EmailOrUsernameAlreadyExists") =>

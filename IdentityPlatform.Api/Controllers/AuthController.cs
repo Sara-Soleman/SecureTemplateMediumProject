@@ -10,6 +10,8 @@ using IdentityPlatform.Identity.Application.Users.Commands.RefreshToken;
 using IdentityPlatform.Identity.Application.Users.Commands.RegisterUser;
 using IdentityPlatform.Identity.Application.Users.Commands.ResetPassword;
 using IdentityPlatform.Identity.Application.Users.Commands.RevokeAllSessions;
+using IdentityPlatform.Identity.Application.Users.Dtos;
+using IdentityPlatform.Identity.Application.Users.Queries.GetUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -163,8 +165,17 @@ namespace IdentityPlatform.Api.Controllers
         /// <label>تجديد التوكن (Token Rotation)</label>
         [HttpPost("refresh-token")]
         [Authorize]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request, CancellationToken cancellationToken)
         {
+            var rawIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.1";
+            var normalizedIp = NormalizeIpAddress(rawIp);
+
+            var command = new RefreshTokenCommand(
+                RefreshToken: request.RefreshToken,
+                IpAddress: normalizedIp,
+                UserAgent: Request.Headers["User-Agent"].ToString()
+            );
+
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)
@@ -178,7 +189,7 @@ namespace IdentityPlatform.Api.Controllers
                 var localizedErrors = ErrorResponse.Error.Errors?
                     .Select(errKey => _localizer[errKey].Value)
                     .ToList() ?? new List<string>();
-
+                //return BadRequest(result.Error);
                 return BadRequest(new
                 {
                     code = ErrorResponse.Error.GetHashCode(),
@@ -187,8 +198,26 @@ namespace IdentityPlatform.Api.Controllers
                 });
             }
 
+
+
             return Ok(result.Value);
         }
+        public static string NormalizeIpAddress(string? ipAddress)
+        {
+            if (string.IsNullOrWhiteSpace(ipAddress))
+                return "0.0.0.1";
+
+            // تحويل IPv6 Loopback إلى IPv4 القياسي لكي يتطابق محلياً
+            if (ipAddress == "::1")
+                return "0.0.0.1";
+
+            // إزالة بادئة IPv6 الملتصقة أحياناً ::ffff:
+            if (ipAddress.StartsWith("::ffff:"))
+                return ipAddress.Substring(7);
+
+            return ipAddress;
+        }
+
 
         /// <label>طلب استعادة كلمة المرور (إرسال الرمز)</label>
         [HttpPost("forgot-password")]
@@ -476,5 +505,8 @@ namespace IdentityPlatform.Api.Controllers
             return Ok(new { message = successMessage });
            // return Ok(new { success = true, message = "MFA preference updated successfully." });
         }
+
+
+        
     }
 }

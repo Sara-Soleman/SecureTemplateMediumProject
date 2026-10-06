@@ -4,6 +4,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using MediatR;
@@ -13,14 +14,14 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.RevokeAllSessions
 {
-    public sealed class RevokeAllSessionsCommandHandler : CommandHandlerBase<RevokeAllSessionsCommand, bool>
+    public sealed class RevokeAllSessionsCommandHandler : CommandHandlerBase<RevokeAllSessionsCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private User _user;
 
         public RevokeAllSessionsCommandHandler(
             IUserRepository userRepository,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
         {

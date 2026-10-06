@@ -5,6 +5,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Authorization.Application.Persistence;
 using IdentityPlatform.Authorization.Domain.Roles;
 using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using MediatR;
@@ -14,12 +15,12 @@ using System.Text;
 
 namespace IdentityPlatform.Authorization.Application.Roles.Commands.RemoveRoleFromUser
 {
-    public class RemoveRoleFromUserCommandHandler : CommandHandlerBase<RemoveRoleFromUserCommand, Unit>
+    public class RemoveRoleFromUserCommandHandler : CommandHandlerBase<RemoveRoleFromUserCommand, Unit, IAuthorizationUnitOfWork>
     {
         private readonly IRoleRepository _roleRepository;
         private Role _role;
 
-        public RemoveRoleFromUserCommandHandler(IRoleRepository roleRepository, IUnitOfWork unitOfWork,
+        public RemoveRoleFromUserCommandHandler(IRoleRepository roleRepository, IAuthorizationUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
             {

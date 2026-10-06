@@ -21,12 +21,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common.Infrastructure\Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\IdentityPlatform.Authorization.Application\IdentityPlatform.Authorization.Application.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Authorization.Domain\IdentityPlatform.Authorization.Domain.csproj" />
-    <ProjectReference Include="..\IdentityPlatform.Identity.Infrastructure\IdentityPlatform.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\IdentityPlatform.Identity.Application\IdentityPlatform.Identity.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Persistence\Configurations\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

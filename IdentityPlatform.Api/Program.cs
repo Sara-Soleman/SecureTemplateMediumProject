@@ -1,11 +1,14 @@
 using Common.Application;
+using Common.Application.Behaviours;
 using Common.Domain;
 using Common.Infrastructure.Caching;
 using IdentityPlatform.Api.Middleware;
 using IdentityPlatform.Authorization.Application;
 using IdentityPlatform.Authorization.Domain;
 using IdentityPlatform.Authorization.Infrastructure;
+using IdentityPlatform.Authorization.Infrastructure.Services;
 using IdentityPlatform.Identity.Application;
+using IdentityPlatform.Identity.Application.Authorization;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Infrastructure;
@@ -14,12 +17,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Formatting.Compact;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.OpenApi;
 
 
 #region seriLog 
@@ -66,7 +71,11 @@ try
     // في ملف Program.cs
     builder.Services.AddIdentityApplication();
 
-    builder.Services.AddAuthorizationInfrastructure();
+    // في ملف Program.cs أو في Extension Method الخاصة بالتسجيل
+    builder.Services.AddScoped<IAuthorizationReader, AuthorizationReader>();
+
+
+    builder.Services.AddAuthorizationInfrastructure(builder.Configuration);
 
     builder.Services.AddIdentityInfrastructure(builder.Configuration);
     builder.Services.AddAuthorizationApplication();
@@ -83,16 +92,7 @@ try
     })
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,                
-            ValidIssuer = issuer,
-            ValidateAudience = true, 
-            ValidAudience = audience,
-            ValidateLifetime = true,  // التحقق من صلاحية وقت التوكن
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            ValidateIssuerSigningKey = true
-        };
+        
 
         // تتبع أسباب الرفض بدقة في حال حدوث أي خطأ لاحقاً
         options.TokenValidationParameters = new TokenValidationParameters
@@ -159,15 +159,17 @@ try
     #endregion
 
     #region Authorization
-    builder.Services.AddAuthorization(options =>
-    {
-       
-        foreach (var permission in Permissions.GetAllPermissions())
-        {
-            options.AddPolicy(permission, policy =>
-                policy.RequireClaim("permission", permission));
-        }
-    });
+    //تم الاستغناء عنها عبر منطق DynamicAuthorizationPolicyProvider//
+    //-_- :) ;)
+    //builder.Services.AddAuthorization(options =>
+    //{
+
+    //    foreach (var permission in Permissions.GetAllPermissions())
+    //    {
+    //        options.AddPolicy(permission, policy =>
+    //            policy.RequireClaim("permission", permission));
+    //    }
+    //});
     #endregion
 
     #region Localization
@@ -232,7 +234,23 @@ try
 
 
     #region Swagger
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Description = "Enter your JWT Bearer token.",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+    });
     #endregion
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddControllers();
@@ -292,7 +310,7 @@ try
 
     app.MapReverseProxy();
     app.MapControllers();
-
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     app.Run();
 }
 catch (Exception ex)

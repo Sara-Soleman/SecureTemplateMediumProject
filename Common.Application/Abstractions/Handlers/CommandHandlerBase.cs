@@ -10,16 +10,17 @@ using System.Text;
 
 namespace Common.Application.Abstractions.Handlers
 {
-    public abstract class CommandHandlerBase<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
+    public abstract class CommandHandlerBase<TCommand, TResponse, TUnitOfWork> : ICommandHandler<TCommand, TResponse, TUnitOfWork>
      where TCommand : ICommand<TResponse>
      where TResponse : notnull
+         where TUnitOfWork : IUnitOfWork
     {
         private readonly IDomainEventDispatcher _domainEventDispatcher;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TUnitOfWork _unitOfWork;
 
         protected CommandHandlerBase(
             IDomainEventDispatcher domainEventDispatcher,
-            IUnitOfWork unitOfWork)
+            TUnitOfWork unitOfWork)
         {
             _domainEventDispatcher = domainEventDispatcher;
             _unitOfWork = unitOfWork;

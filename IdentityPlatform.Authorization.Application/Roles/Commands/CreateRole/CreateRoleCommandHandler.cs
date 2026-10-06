@@ -6,6 +6,7 @@ using Common.Application.Events.Dispatchers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Authorization.Application.Persistence;
 using IdentityPlatform.Authorization.Domain.Roles;
 using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using System;
@@ -15,12 +16,12 @@ using System.Text;
 
 namespace IdentityPlatform.Authorization.Application.Roles.Commands.CreateRole
 {
-    public class CreateRoleCommandHandler : CommandHandlerBase<CreateRoleCommand,Guid>
+    public class CreateRoleCommandHandler : CommandHandlerBase<CreateRoleCommand,Guid, IAuthorizationUnitOfWork>
     {
         private readonly IRoleRepository _roleRepository;
         private Role _role;
 
-        public CreateRoleCommandHandler(IRoleRepository roleRepository, IUnitOfWork unitOfWork,
+        public CreateRoleCommandHandler(IRoleRepository roleRepository, IAuthorizationUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
 

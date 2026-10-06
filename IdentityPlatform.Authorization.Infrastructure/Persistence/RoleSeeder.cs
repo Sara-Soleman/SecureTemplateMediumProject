@@ -1,6 +1,5 @@
 ﻿using IdentityPlatform.Authorization.Domain;
 using IdentityPlatform.Authorization.Domain.Roles;
-using IdentityPlatform.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,9 +9,9 @@ namespace IdentityPlatform.Authorization.Infrastructure.Persistence
 {
     public class RoleSeeder
     {
-        private readonly IdentityDbContext _context;
+        private readonly AuthorizationDbContext _context;
 
-        public RoleSeeder(IdentityDbContext context)
+        public RoleSeeder(AuthorizationDbContext context)
         {
             _context = context;
         }

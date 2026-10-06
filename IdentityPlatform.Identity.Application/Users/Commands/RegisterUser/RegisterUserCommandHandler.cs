@@ -5,6 +5,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using System;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
 {
-    public sealed class RegisterUserCommandHandler : CommandHandlerBase<RegisterUserCommand, Guid>
+    public sealed class RegisterUserCommandHandler : CommandHandlerBase<RegisterUserCommand, Guid, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
@@ -22,7 +23,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
         public RegisterUserCommandHandler(
                 IUserRepository userRepository,
                 IPasswordHasher passwordHasher,
-                IUnitOfWork unitOfWork,
+                IIdentityUnitOfWork unitOfWork,
                 IDomainEventDispatcher domainEventDispatcher)
                     : base(domainEventDispatcher, unitOfWork)
         {

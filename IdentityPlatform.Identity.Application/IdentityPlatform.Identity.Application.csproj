@@ -19,7 +19,6 @@
     <ProjectReference Include="..\Common.Core\Common.Core.csproj" />
     <ProjectReference Include="..\Common.Domain\Common.Domain.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Identity.Domain\IdentityPlatform.Identity.Domain.csproj" />
-    <ProjectReference Include="..\IdentityPlatform.Identity.Infrastructure\IdentityPlatform.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -32,13 +32,13 @@ namespace IdentityPlatform.Authorization.Infrastructure.Repositories
         public async Task AddUserRoleAsync(UserRole userRole, CancellationToken cancellationToken)
         {
             await _decorated.AddUserRoleAsync(userRole, cancellationToken);
-            _cacheService.Remove($"user-roles-{userRole.UserId.Value}"); // 👈 مسح الكاش بالخدمة العامة
+            _cacheService.Remove($"user-roles-{userRole.UserId}");
         }
 
         public void RemoveUserRole(UserRole userRole)
         {
             _decorated.RemoveUserRole(userRole);
-            _cacheService.Remove($"user-roles-{userRole.UserId.Value}"); // 👈 مسح الكاش بالخدمة العامة
+            _cacheService.Remove($"user-roles-{userRole.UserId}"); 
         }
 
         // باقي الدوال تمرر للـ Repository الأصلي كالسابق...
@@ -63,7 +63,7 @@ namespace IdentityPlatform.Authorization.Infrastructure.Repositories
         public async Task AddAsync(Role role, CancellationToken cancellationToken) =>
             await _decorated.AddAsync(role, cancellationToken);
 
-        public void Update(Role role) => _decorated.Update(role);
+        public async Task Update(Role role) => await _decorated.Update(role);
 
         public void Remove(Role role) => _decorated.Remove(role);
     }

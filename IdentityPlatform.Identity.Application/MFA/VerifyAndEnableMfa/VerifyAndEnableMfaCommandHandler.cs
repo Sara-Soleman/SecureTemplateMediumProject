@@ -5,6 +5,7 @@ using Common.Application.Events.Dispatchers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using MediatR;
@@ -14,13 +15,13 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.MFA.VerifyAndEnableMfa
 {
-    public sealed class VerifyAndEnableMfaCommandHandler : CommandHandlerBase<VerifyAndEnableMfaCommand, bool>
+    public sealed class VerifyAndEnableMfaCommandHandler : CommandHandlerBase<VerifyAndEnableMfaCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITotpService _totpService;
         private User _user;
 
-        public VerifyAndEnableMfaCommandHandler(IUserRepository userRepository, ITotpService totpService, IUnitOfWork unitOfWork, IDomainEventDispatcher domainEventDispatcher)
+        public VerifyAndEnableMfaCommandHandler(IUserRepository userRepository, ITotpService totpService, IIdentityUnitOfWork unitOfWork, IDomainEventDispatcher domainEventDispatcher)
              : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;

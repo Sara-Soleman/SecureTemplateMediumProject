@@ -5,6 +5,7 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using System;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.MFA.ChangeMfaType
 {
-    public sealed class ChangeMfaPreferenceCommandHandler : CommandHandlerBase<ChangeMfaPreferenceCommand, bool>
+    public sealed class ChangeMfaPreferenceCommandHandler : CommandHandlerBase<ChangeMfaPreferenceCommand, bool, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private User _user;
@@ -21,7 +22,7 @@ namespace IdentityPlatform.Identity.Application.MFA.ChangeMfaType
 
         public ChangeMfaPreferenceCommandHandler(
             IUserRepository userRepository,
-             IUnitOfWork unitOfWork,
+             IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
         {

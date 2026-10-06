@@ -11,10 +11,6 @@ namespace IdentityPlatform.Identity.Domain.Users.Events
         : DomainEvent(aggregateId, occurredOnUtc ?? DateTimeOffset.UtcNow)
     {
     }
-    [AggregateType(IdentityEventConstants.IdentityAggregateTypeName)]
-    public abstract class BaseAuthorizationDomainEvent(Guid aggregateId, DateTimeOffset? occurredOnUtc = null)
-        : DomainEvent(aggregateId, occurredOnUtc ?? DateTimeOffset.UtcNow)
-    {
-    }
+    
 
 }

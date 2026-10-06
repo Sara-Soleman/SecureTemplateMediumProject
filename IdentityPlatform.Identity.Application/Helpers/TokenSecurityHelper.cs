@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace IdentityPlatform.Identity.Infrastructure.Services
+namespace IdentityPlatform.Identity.Application.Helpers
 {
     public static class TokenSecurityHelper
     {

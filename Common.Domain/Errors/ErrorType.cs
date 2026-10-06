@@ -18,6 +18,8 @@ namespace Common.Domain.Errors
         public static readonly ErrorType BadRequest = new BadRequestEnum();
         public static readonly ErrorType Validation = new ValidationEnum();
         public static readonly ErrorType Unexpected = new UnexpectedEnum();
+        public static readonly ErrorType Unauthorized = new UnauthorizedEnum();
+        public static readonly ErrorType Forbidden = new ForbiddenEnum();
 
         //Identity
         #region  Identity Errors
@@ -59,6 +61,14 @@ namespace Common.Domain.Errors
         private class UnexpectedEnum : ErrorType
         {
             public UnexpectedEnum() : base("Unexpected", 4) { }
+        }
+        private class UnauthorizedEnum : ErrorType
+        {
+            public UnauthorizedEnum() : base("Unauthorized", 11) { }
+        }
+        private class ForbiddenEnum : ErrorType
+        {
+            public ForbiddenEnum() : base("Forbidden", 12) { }
         }
         private class Passworderror : ErrorType
         {

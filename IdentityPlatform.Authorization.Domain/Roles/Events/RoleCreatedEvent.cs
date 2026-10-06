@@ -1,11 +1,12 @@
 ﻿using Common.Domain;
-using IdentityPlatform.Identity.Domain.Users.Events;
+using Common.Domain.Events.Decorators;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace IdentityPlatform.Authorization.Domain.Roles.Events
 {
+    [AggregateType(AuthorizationEventConstant.AuthorizationAggregateTypeName)]
     public sealed class RoleCreatedEvent : BaseAuthorizationDomainEvent
     {
         public RoleCreatedEvent(Id<Role> roleId, string name, string description)

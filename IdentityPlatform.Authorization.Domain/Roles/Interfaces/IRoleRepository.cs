@@ -25,7 +25,7 @@ namespace IdentityPlatform.Authorization.Domain.Roles.Interfaces
 
         // عمليات الإدارة العامة للأدوار (Add, Update, Remove)
         Task AddAsync(Role role, CancellationToken cancellationToken);
-        void Update(Role role);
+        Task Update(Role role);
         void Remove(Role role);
     }
 }

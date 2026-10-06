@@ -4,13 +4,12 @@ using Common.Application.Abstractions.Handlers;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
-using IdentityPlatform.Authorization.Domain.Roles;
-using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
+using IdentityPlatform.Identity.Application.Helpers;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Tokens.DTOs;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
-using IdentityPlatform.Identity.Infrastructure.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -18,29 +17,24 @@ using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
 {
-    public sealed class RefreshTokenCommandHandler : CommandHandlerBase<RefreshTokenCommand, AuthResponseDto>
+    public sealed class RefreshTokenCommandHandler : CommandHandlerBase<RefreshTokenCommand, AuthResponseDto, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IRoleRepository _roleRepository;
-        private User _user;
+        private User? _user; // 👈 جعلناه قابلاً للقيم الفارغة لتجنب التحذيرات
 
         public RefreshTokenCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
-            IRoleRepository roleRepository,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
                 : base(domainEventDispatcher, unitOfWork)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _roleRepository = roleRepository;
         }
 
-        
-
-        protected async override Task<Result<AuthResponseDto, IDomainError>> ExecuteAsync(RefreshTokenCommand request, CancellationToken cancellationToken)
+        protected override async Task<Result<AuthResponseDto, IDomainError>> ExecuteAsync(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
             // 1. تشفير التوكن القادم للبحث عنه في قاعدة البيانات
             var tokenHash = TokenSecurityHelper.HashToken(request.RefreshToken);
@@ -61,26 +55,23 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.InvalidRefreshToken());
             }
 
-            // 🔒 3.1. [التحقق الأمني الأحدث]: مطابقة عنوان الـ IP أو بصمة الجهاز لمنع سرقة واستخدام التوكن من شبكة/جهاز آخر
+            // 🔒 3.1. [التحقق الأمني]: مطابقة عنوان الـ IP لمنع سرقة واستخدام التوكن من شبكة أخرى
             if (!string.Equals(family.IpAddress, request.IpAddress, StringComparison.OrdinalIgnoreCase))
             {
-                // إذا اختلف الـ IP، فهذه محاولة اختراق محتملة (تمت سرقة الـ Token)، نقوم بإلغاء العائلة فوراً!
                 family.Revoke();
-               
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.SecurityAlertTokenReuseDetected());
             }
 
-            // 4. كشف محاولة الاستخدام المتكرر (Token Reuse Detection):
+            // 4. كشف محاولة الاستخدام المتكرر (Token Reuse Detection)
             if (storedToken.ConsumedAt != null)
             {
                 family.Revoke();
-               
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.SecurityAlertTokenReuseDetected());
             }
 
             // 5. جلب المستخدم المرتبط بالجلسة أو العائلة للتأكد من حالته
-            var user = await _userRepository.GetBySessionIdAsync(family.SessionId, cancellationToken);
-            if (user == null || user.AccountStatus != AccountStatus.Active)
+            _user = await _userRepository.GetBySessionIdAsync(family.SessionId, cancellationToken);
+            if (_user == null || _user.AccountStatus != AccountStatus.Active)
             {
                 return Result.Failure<AuthResponseDto, IDomainError>(DomainError.AccountIsInactive());
             }
@@ -89,14 +80,12 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             var newRawToken = TokenSecurityHelper.GenerateSecureTokenString();
             var newTokenHash = TokenSecurityHelper.HashToken(newRawToken);
 
-            // استدعاء دالة الإنشاء الصحيحة مع تمرير المعرف الجديد للتوكن وتثبيت العائلة
             var newRefreshToken = IdentityPlatform.Identity.Domain.Tokens.RefreshToken.Create(
                 familyId: family.Id,
                 tokenHash: newTokenHash,
                 lifetime: TimeSpan.FromDays(7),
-                ipAddress: request.IpAddress,   // تمرير الـ IP
-                userAgent: request.UserAgent,   // تمرير الـ UserAgent
-                id: Id<IdentityPlatform.Identity.Domain.Tokens.RefreshToken>.New()
+                ipAddress: request.IpAddress,   
+                userAgent: request.UserAgent    
             );
 
             family.AddRefreshToken(newRefreshToken);
@@ -104,26 +93,17 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
             // 7. استهلاك التوكن القديم وربطه بالتوكن الجديد
             storedToken.Consume(newRefreshToken.Id);
 
-            var userRoles = await _roleRepository.GetRolesByUserIdAsync(user.Id.Value, cancellationToken);
-
-            var roleNames = userRoles.Select(r => r.Name).ToList();
-            var permissions = userRoles
-                .SelectMany(r => r.Permissions)
-                .Distinct()
-                .ToList();
-
             // 8. توليد JWT Access Token جديد
-            var newAccessToken = _jwtTokenGenerator.GenerateToken(user, family.SessionId, roleNames, permissions);
+        
+            var newAccessToken = await _jwtTokenGenerator.GenerateTokensAsync(_user, request.IpAddress, request.UserAgent, cancellationToken);
+            var responseDto = new AuthResponseDto(newAccessToken.AccessToken, newRawToken);
 
-            
-
-            // 10. إرجاع التوكنات الجديدة بنجاح
-            return Result.Success<AuthResponseDto, IDomainError>(new AuthResponseDto(newAccessToken, newRawToken));
+            return Result.Success<AuthResponseDto, IDomainError>(responseDto);
         }
 
         protected override IAggregateRoot? GetAggregateRoot(Result<AuthResponseDto, IDomainError> result)
         {
-            return _user;
+            return _user; 
         }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using Common.Application.Abstractions;
+using Common.Domain;
+using Common.Infrastructure.Abstractions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
 using IdentityPlatform.Identity.Domain.Tokens.Interfaces;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
@@ -12,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+
 namespace IdentityPlatform.Identity.Infrastructure
 {
     public static class DependencyInjection
@@ -22,10 +26,11 @@ namespace IdentityPlatform.Identity.Infrastructure
             var connectionString = configuration.GetConnectionString("IdentityDatabase");
             // 1. تسجيل IdentityDbContext وإرباحه بـ IUnitOfWork
             services.AddDbContext<IdentityDbContext>(options =>
-                options.UseSqlServer(connectionString)); // أو UseNpgsql / UseSqlite حسب نوع قاعدة البيانات لديك
+                options.UseSqlServer(connectionString)); //
 
-            services.AddScoped<IUnitOfWork>(provider =>
-                provider.GetRequiredService<IdentityDbContext>());
+            //services.AddScoped<IUnitOfWork>(provider =>
+            //    provider.GetRequiredService<IdentityDbContext>());
+            services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
 
             // 2. تسجيل واجهات الـ Domain (Repositories)
             services.AddScoped<IUserRepository, UserRepository>();
@@ -38,7 +43,13 @@ namespace IdentityPlatform.Identity.Infrastructure
             services.AddScoped<ITotpService, TotpService>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
+            services.AddHttpContextAccessor();
             return services;
+
         }
     }
 }

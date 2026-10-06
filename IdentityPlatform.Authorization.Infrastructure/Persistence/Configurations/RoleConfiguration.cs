@@ -7,19 +7,33 @@ using System.Data;
 using System.Text;
 using System.Text.Json;
 
-namespace IdentityPlatform.Identity.Infrastructure.Persistence.Configurations
+namespace IdentityPlatform.Authorization.Infrastructure.Persistence.Configurations
 {
     public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
         public void Configure(EntityTypeBuilder<Role> builder)
         {
+            var comparer = new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<IReadOnlyCollection<string>>(
+    (c1, c2) => c1!.SequenceEqual(c2!),
+    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+    c => c.ToList()
+);
+
+            builder.Property(r => r.Permissions)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                )
+                .Metadata.SetValueComparer(comparer);
+
             builder.ToTable("Roles");
 
             builder.HasKey(r => r.Id);
 
             
             builder.Property(r => r.Id)
-                .HasConversion(id => id.Value, value => new Common.Domain.Id<Role>(value));
+                .HasConversion(id => id.Value, value => new Common.Domain.Id<Role>(value))
+                .ValueGeneratedNever();
 
             builder.Property(r => r.Name)
                 .IsRequired()

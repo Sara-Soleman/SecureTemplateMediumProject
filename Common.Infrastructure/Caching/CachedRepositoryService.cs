@@ -25,6 +25,7 @@ namespace Common.Infrastructure.Caching
             }) ?? default!;
         }
 
+
         // دالة  لمسح الكاش عند التعديل (Invalidation)
         public void Remove(string cacheKey)
         {

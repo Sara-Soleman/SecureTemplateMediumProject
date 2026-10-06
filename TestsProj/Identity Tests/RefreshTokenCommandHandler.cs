@@ -3,10 +3,10 @@ using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using Common.Domain.Errors;
 using FluentAssertions;
+using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using IdentityPlatform.Identity.Application.Users.Commands.RefreshToken;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
-using IdentityPlatform.Identity.Infrastructure.Services;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ namespace TestsProj.Identity_Tests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock;
+        private readonly Mock<IRoleRepository> _roleRepositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly RefreshTokenCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
@@ -26,10 +27,11 @@ namespace TestsProj.Identity_Tests
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _jwtTokenGeneratorMock = new Mock<IJwtTokenGenerator>();
+            _roleRepositoryMock = new Mock<IRoleRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
-            _handler = new RefreshTokenCommandHandler(_userRepositoryMock.Object, _jwtTokenGeneratorMock.Object, _unitOfWorkMock.Object, _domainEventDispatcherMock.Object);
+            _handler = new RefreshTokenCommandHandler(_userRepositoryMock.Object, _jwtTokenGeneratorMock.Object, _roleRepositoryMock.Object, _unitOfWorkMock.Object, _domainEventDispatcherMock.Object);
         }
 
         [Fact]

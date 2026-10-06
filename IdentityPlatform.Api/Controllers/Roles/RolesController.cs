@@ -1,6 +1,8 @@
 ﻿using IdentityPlatform.Authorization.Application.Roles.Commands.AssignRoleToUser;
 using IdentityPlatform.Authorization.Application.Roles.Commands.CreateRole;
 using IdentityPlatform.Authorization.Application.Roles.Commands.RemoveRoleFromUser;
+using IdentityPlatform.Authorization.Application.Roles.Commands.UpdateRoles;
+using IdentityPlatform.Authorization.Application.Roles.Dtos;
 using IdentityPlatform.Authorization.Application.Roles.Queries.GetAllRoles;
 using IdentityPlatform.Authorization.Application.Roles.Queries.GetUserRoles;
 using IdentityPlatform.Authorization.Domain;
@@ -186,6 +188,43 @@ namespace IdentityPlatform.Api.Controllers.Roles
 
             return Ok(Message);
           
+        }
+        /// <summary>
+        /// إزالة دور من مستخدم
+        /// </summary>
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateRole(Guid id,
+        [FromBody] UpdateRoleRequestDto request,
+        CancellationToken cancellationToken)
+        {
+
+            var command = new UpdateRoleCommand(
+            RoleId: id,
+            Name: request.Name,
+            Description: request.Description,
+            Permissions: request.Permissions
+        );
+
+            var result = await _sender.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+
+                var response = result;
+
+
+                var localizedMainMessage = _localizer[response.Error.ErrorMessage];
+
+                return BadRequest(new
+                {
+                    code = response.Error.GetHashCode(),
+                    message = localizedMainMessage.Value
+                });
+            }
+
+
+            return Ok(result.IsSuccess);
+
         }
     }
 }

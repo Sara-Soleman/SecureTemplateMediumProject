@@ -6,20 +6,20 @@ using Common.Application.Interfaces;
 using Common.Domain;
 using Common.Domain.Errors;
 using CSharpFunctionalExtensions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Tokens.DTOs;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Enums;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
-using IdentityPlatform.Identity.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace IdentityPlatform.Identity.Application.Users.Commands.Login
 {
-    public sealed class LoginCommandHandler : CommandHandlerBase<LoginCommand, MfaChallengeResponse>
+    public sealed class LoginCommandHandler : CommandHandlerBase<LoginCommand, MfaChallengeResponse, IIdentityUnitOfWork>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
@@ -30,7 +30,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.Login
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
             IEmailService emailService,
-            IUnitOfWork unitOfWork,
+            IIdentityUnitOfWork unitOfWork,
             IDomainEventDispatcher domainEventDispatcher)
             : base(domainEventDispatcher, unitOfWork)
         {
