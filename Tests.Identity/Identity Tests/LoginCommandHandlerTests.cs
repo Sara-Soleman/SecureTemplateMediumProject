@@ -2,6 +2,7 @@
 using Common.Application.Abstractions.DomainEvents;
 using Common.Application.Interfaces;
 using FluentAssertions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Application.Users.Commands.Login;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Enums;
@@ -10,6 +11,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
@@ -18,7 +20,7 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IPasswordHasher> _passwordHasherMock;
         private readonly Mock<IEmailService> _emailServiceMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly LoginCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
@@ -27,7 +29,7 @@ namespace TestsProj.Identity_Tests
             _userRepositoryMock = new Mock<IUserRepository>();
             _passwordHasherMock = new Mock<IPasswordHasher>();
             _emailServiceMock = new Mock<IEmailService>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
 

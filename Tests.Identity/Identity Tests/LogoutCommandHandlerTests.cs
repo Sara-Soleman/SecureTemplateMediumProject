@@ -1,4 +1,5 @@
-﻿using Common.Application.Abstractions;
+﻿using IdentityPlatform.Identity.Application.Persistence;
+using IdentityPlatform.Identity.Application.Helpers;
 using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
@@ -11,20 +12,21 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
     public class LogoutCommandHandlerTests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly LogoutCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
         public LogoutCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
             _handler = new LogoutCommandHandler(

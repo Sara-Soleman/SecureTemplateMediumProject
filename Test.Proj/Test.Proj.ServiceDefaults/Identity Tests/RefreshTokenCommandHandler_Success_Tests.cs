@@ -2,9 +2,8 @@
 using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
-using IdentityPlatform.Authorization.Domain;
-using IdentityPlatform.Authorization.Domain.Roles;
-using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
+using IdentityPlatform.Identity.Application.Helpers;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Application.Users.Commands.RefreshToken;
 using IdentityPlatform.Identity.Domain.Tokens;
 using IdentityPlatform.Identity.Domain.Users;
@@ -13,6 +12,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj
 {
@@ -20,23 +20,20 @@ namespace TestsProj
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock;
-        private readonly Mock<IRoleRepository> _roleRepositoryMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly RefreshTokenCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
         public RefreshTokenCommandHandlerSuccessTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _jwtTokenGeneratorMock = new Mock<IJwtTokenGenerator>();
-            _roleRepositoryMock = new Mock<IRoleRepository>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
 
             _handler = new RefreshTokenCommandHandler(
                 _userRepositoryMock.Object,
                 _jwtTokenGeneratorMock.Object,
-                _roleRepositoryMock.Object,
                 _unitOfWorkMock.Object,
                 _domainEventDispatcherMock.Object
             );
@@ -71,9 +68,7 @@ namespace TestsProj
             _userRepositoryMock
                 .Setup(repo => repo.GetBySessionIdAsync(sessionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(user);
-            _roleRepositoryMock
-                .Setup(repo => repo.GetRolesByUserIdAsync(user.Id.Value, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Role>());
+           
 
             _jwtTokenGeneratorMock
                 .Setup(gen => gen.GenerateToken(

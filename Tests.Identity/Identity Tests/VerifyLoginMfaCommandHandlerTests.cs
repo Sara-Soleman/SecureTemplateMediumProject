@@ -1,6 +1,7 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Application.Users.Commands.Login;
 using IdentityPlatform.Identity.Domain.Dto;
 using IdentityPlatform.Identity.Domain.Users;
@@ -11,6 +12,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
@@ -19,7 +21,7 @@ namespace TestsProj.Identity_Tests
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<ITotpService> _totpServiceMock;
         private readonly Mock<IJwtTokenGenerator> _tokenServiceMock; // تم التعديل لتطابق الخدمة المستخدمة في الهاندلر
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly VerifyLoginMfaCommandHandler _handler;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
@@ -29,7 +31,7 @@ namespace TestsProj.Identity_Tests
             _userRepositoryMock = new Mock<IUserRepository>();
             _totpServiceMock = new Mock<ITotpService>();
             _tokenServiceMock = new Mock<IJwtTokenGenerator>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 

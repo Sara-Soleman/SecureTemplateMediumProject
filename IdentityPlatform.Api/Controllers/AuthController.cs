@@ -44,7 +44,15 @@ namespace IdentityPlatform.Api.Controllers
             [FromBody] RegisterUserCommand command,
             CancellationToken cancellationToken)
         {
+
+            Console.WriteLine("1 - Entered Controller");
+
             var result = await _sender.Send(command, cancellationToken);
+
+            Console.WriteLine("2 - Returned from MediatR");
+
+
+          //  var result = await _sender.Send(command, cancellationToken);
 
             // التحقق من نتيجة الـ Result Pattern
             if (result.IsFailure)

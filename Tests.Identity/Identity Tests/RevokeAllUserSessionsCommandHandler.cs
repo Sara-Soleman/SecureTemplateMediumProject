@@ -2,6 +2,7 @@
 using Common.Application.Abstractions.DomainEvents;
 using Common.Domain;
 using FluentAssertions;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Application.Sessions.RevokeAllUserSessions;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
@@ -9,19 +10,20 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
     public class RevokeAllUserSessionsCommandHandlerTests
     {
         private readonly Mock<IUserSessionRepository> _sessionRepositoryMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly RevokeAllUserSessionsCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
         public RevokeAllUserSessionsCommandHandlerTests()
         {
             _sessionRepositoryMock = new Mock<IUserSessionRepository>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
             _handler = new RevokeAllUserSessionsCommandHandler(_sessionRepositoryMock.Object, _unitOfWorkMock.Object,_domainEventDispatcherMock.Object);

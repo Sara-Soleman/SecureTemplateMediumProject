@@ -1,7 +1,10 @@
 using Common.Application;
+using Common.Application.Abstractions.DomainEvents;
 using Common.Application.Behaviours;
 using Common.Domain;
+using Common.Domain.Errors;
 using Common.Infrastructure.Caching;
+using CSharpFunctionalExtensions;
 using IdentityPlatform.Api.Middleware;
 using IdentityPlatform.Authorization.Application;
 using IdentityPlatform.Authorization.Domain;
@@ -9,14 +12,19 @@ using IdentityPlatform.Authorization.Infrastructure;
 using IdentityPlatform.Authorization.Infrastructure.Services;
 using IdentityPlatform.Identity.Application;
 using IdentityPlatform.Identity.Application.Authorization;
+using IdentityPlatform.Identity.Application.Persistence;
+using IdentityPlatform.Identity.Application.Users.Commands.RegisterUser;
 using IdentityPlatform.Identity.Domain.Sessions;
 using IdentityPlatform.Identity.Domain.Users;
+using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using IdentityPlatform.Identity.Infrastructure;
 using IdentityPlatform.Identity.Infrastructure.Persistence;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -24,7 +32,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
-using Microsoft.OpenApi;
 
 
 #region seriLog 
@@ -258,6 +265,36 @@ try
     builder.Services.AddOpenApi();
 
     var app = builder.Build();
+
+
+
+    using (var scope = app.Services.CreateScope())
+    {
+        Console.WriteLine("1 - Before DbContextOptions");
+
+        var options = scope.ServiceProvider
+            .GetRequiredService<DbContextOptions<IdentityDbContext>>();
+
+        Console.WriteLine("2 - DbContextOptions OK");
+
+        Console.WriteLine("3 - Before IdentityDbContext");
+
+        try
+        {
+            var context = scope.ServiceProvider
+                .GetRequiredService<IdentityDbContext>();
+
+            Console.WriteLine("4 - IdentityDbContext OK");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("!!! EXCEPTION !!!");
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+
+
 
     #region YARP & Proxy Headers
     // 1. قراءة الـ IP الحقيقي أولاً وقبل كل شيء (ممتاز جداً وضعه في البداية)

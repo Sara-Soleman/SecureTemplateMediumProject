@@ -1,7 +1,6 @@
 ﻿using Common.Application.Abstractions;
 using Common.Infrastructure.Abstractions;
 using Common.Infrastructure.Caching;
-using IdentityPlatform.Authorization.Application.Persistence;
 using IdentityPlatform.Authorization.Application.Resource_Based_Authorization;
 using IdentityPlatform.Authorization.Domain.Roles.Interfaces;
 using IdentityPlatform.Authorization.Infrastructure.Persistence;
@@ -29,19 +28,20 @@ namespace IdentityPlatform.Authorization.Infrastructure
     options.UseSqlServer(configuration.GetConnectionString("IdentityDatabase"))
            .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information));
 
-            //services.AddScoped<IUnitOfWork>(provider =>
-            //    provider.GetRequiredService<AuthorizationDbContext>());
-            services.AddScoped< IAuthorizationUnitOfWork, AuthorizationUnitOfWork>();
+            
+            // Register AuthorizationUnitOfWork against the application-specific interface
+            services.AddScoped<IdentityPlatform.Authorization.Application.Persistence.IAuthorizationUnitOfWork, AuthorizationUnitOfWork>();
 
             // داخل ملف تكوين الخدمات (مثل DependencyInjection.cs الخاص بطبقة البنية التحتية)
-            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IdentityPlatform.Authorization.Domain.Roles.Interfaces.IRoleRepository, RoleRepository>();
             services.AddScoped<RoleRepository>();
-            services.AddScoped<IRoleRepository>(provider =>
+            services.AddScoped<IdentityPlatform.Authorization.Domain.Roles.Interfaces.IRoleRepository>(provider =>
                 new CachedRoleRepository(
                     provider.GetRequiredService<RoleRepository>(),
                     provider.GetRequiredService<CachedRepositoryService>()
                 ));
             services.AddScoped<IAuthorizationHandler, RoleOwnerOrAdminAuthorizationHandler>();
+
 
 
             return services;

@@ -2,12 +2,14 @@
 using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
 using IdentityPlatform.Identity.Application.MFA.SetupMfa;
+using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
@@ -15,14 +17,14 @@ namespace TestsProj.Identity_Tests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<ITotpService> _totpServiceMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
         private readonly SetupMfaCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
         public SetupMfaCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _totpServiceMock = new Mock<ITotpService>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
 

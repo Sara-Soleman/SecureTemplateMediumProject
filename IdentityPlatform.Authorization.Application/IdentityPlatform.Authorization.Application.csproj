@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common.Application\Common.Application.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Authorization.Domain\IdentityPlatform.Authorization.Domain.csproj" />
+    <!-- No infrastructure project reference in Application project -->
   </ItemGroup>
 
 </Project>

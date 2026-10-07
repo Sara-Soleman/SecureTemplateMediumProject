@@ -16,8 +16,8 @@
     <Project Path="IdentityPlatform.Identity.Infrastructure/IdentityPlatform.Identity.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/IdentityPlatform/Security/" />
-  <Folder Name="/Test/">
-    <Project Path="TestsProj/TestsProj.csproj" Id="dcaa19e1-83a3-411d-8d84-46dbbf34b568" />
+  <Folder Name="/TestProj/">
+    <Project Path="Tests.Identity/Tests.Identity.csproj" Id="cc8cc687-a659-444d-9532-157b2882e61d" />
   </Folder>
   <Project Path="Common.Application/Common.Application.csproj" Id="aabb5719-1f1d-494d-a7f1-8e557921e79e" />
   <Project Path="Common.Core/Common.Core.csproj" />

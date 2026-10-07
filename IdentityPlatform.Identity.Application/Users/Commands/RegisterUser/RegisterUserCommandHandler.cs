@@ -27,6 +27,9 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
                 IDomainEventDispatcher domainEventDispatcher)
                     : base(domainEventDispatcher, unitOfWork)
         {
+            Console.WriteLine("3 - Handler constructor entered");
+
+
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
         }
@@ -34,6 +37,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RegisterUser
        
         protected async override Task<Result<Guid, IDomainError>> ExecuteAsync(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            Console.WriteLine("4 - ExecuteAsync entered");
             // 1. التحقق إن كان المستخدم موجوداً مسبقاً
             var exists = await _userRepository.ExistsByUsernameOrEmailAsync(
                 request.Username,

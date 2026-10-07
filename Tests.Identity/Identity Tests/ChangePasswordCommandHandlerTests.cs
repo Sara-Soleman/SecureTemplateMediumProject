@@ -1,47 +1,56 @@
 ﻿using Common.Application.Abstractions;
 using Common.Application.Abstractions.DomainEvents;
 using FluentAssertions;
-using IdentityPlatform.Identity.Application.Users.Commands.RevokeAllSessions;
+using IdentityPlatform.Identity.Application.Persistence;
+using IdentityPlatform.Identity.Application.Users.Commands.ChangePassword;
 using IdentityPlatform.Identity.Domain.Users;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
 
 namespace TestsProj.Identity_Tests
 {
-    public class RevokeAllSessionsCommandHandlerTests
+    public class ChangePasswordCommandHandlerTests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly RevokeAllSessionsCommandHandler _handler;
+        private readonly Mock<IPasswordHasher> _passwordHasherMock;
+        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
+        private readonly ChangePasswordCommandHandler _handler;
         private readonly Mock<IDomainEventDispatcher> _domainEventDispatcherMock;
 
-        public RevokeAllSessionsCommandHandlerTests()
+        public ChangePasswordCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _passwordHasherMock = new Mock<IPasswordHasher>();
+            _unitOfWorkMock = new Mock<IIdentityUnitOfWork>();
             _domainEventDispatcherMock = new Mock<IDomainEventDispatcher>();
 
-
-            _handler = new RevokeAllSessionsCommandHandler(
+            _handler = new ChangePasswordCommandHandler(
                 _userRepositoryMock.Object,
+                _passwordHasherMock.Object,
                 _unitOfWorkMock.Object,
                 _domainEventDispatcherMock.Object
             );
         }
 
         [Fact]
-        public async Task Handle_Should_Return_Failure_When_User_Not_Found()
+        public async Task Handle_Should_Return_Failure_When_Current_Password_Is_Incorrect()
         {
             // --- Arrange ---
             var userId = Guid.NewGuid();
-            var command = new RevokeAllSessionsCommand(userId);
+            var command = new ChangePasswordCommand(userId, "WrongOldPassword!", "NewSecurePass123!");
+            var user = User.CreateTestUser();
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((User?)null);
+                .ReturnsAsync(user);
+
+            _passwordHasherMock
+                .Setup(hasher => hasher.VerifyPassword(command.CurrentPassword, It.IsAny<string>()))
+                .Returns(false); // كلمة المرور الحالية خطأ
 
             // --- Act ---
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -52,25 +61,32 @@ namespace TestsProj.Identity_Tests
         }
 
         [Fact]
-        public async Task Handle_Should_Increment_Token_Version_And_Save_When_User_Exists()
+        public async Task Handle_Should_Update_Password_And_Revoke_Tokens_When_Valid()
         {
             // --- Arrange ---
             var userId = Guid.NewGuid();
-            var command = new RevokeAllSessionsCommand(userId);
+            var command = new ChangePasswordCommand(userId, "OldSecurePass123!", "NewSecurePass456!");
             var user = User.CreateTestUser();
-            var initialVersion = user.TokenVersion;
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(user);
+
+            _passwordHasherMock
+                .Setup(hasher => hasher.VerifyPassword(command.CurrentPassword, It.IsAny<string>()))
+                .Returns(true); // كلمة المرور الحالية صحيحة
+
+            _passwordHasherMock
+                .Setup(hasher => hasher.HashPassword(command.NewPassword))
+                .Returns("new-hashed-password");
 
             // --- Act ---
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // --- Assert ---
             result.IsSuccess.Should().BeTrue();
-            user.TokenVersion.Should().Be(initialVersion + 1); // التأكد من زيادة رقم الإصدار لإبطال الجلسات
 
+            // التأكد من حفظ التغييرات في قاعدة البيانات
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce());
         }
     }

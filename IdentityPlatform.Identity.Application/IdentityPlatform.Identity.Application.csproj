@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Common.Core\Common.Core.csproj" />
     <ProjectReference Include="..\Common.Domain\Common.Domain.csproj" />
     <ProjectReference Include="..\IdentityPlatform.Identity.Domain\IdentityPlatform.Identity.Domain.csproj" />
+    <!-- Removed project reference to IdentityPlatform.Identity.Infrastructure to enforce dependency inversion -->
   </ItemGroup>
 
   <ItemGroup>

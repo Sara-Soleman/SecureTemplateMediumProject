@@ -25,6 +25,7 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
             IPublisher publisher,
             IDomainEventDispatcher dispatcher) : base(options)
         {
+            Console.WriteLine("A - IdentityDbContext constructor entered");
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _dispatcher = dispatcher;
         }
@@ -43,7 +44,11 @@ namespace IdentityPlatform.Identity.Infrastructure.Persistence
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            Console.WriteLine("B - OnModelCreating entered");
+
             base.OnModelCreating(modelBuilder);
+
+            Console.WriteLine("C - After base.OnModelCreating");
 
 
             modelBuilder.Entity<AuditLog>(entity =>

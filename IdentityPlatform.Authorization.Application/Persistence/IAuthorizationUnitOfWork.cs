@@ -1,11 +1,7 @@
-﻿using Common.Application.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Common.Application.Abstractions;
 
 namespace IdentityPlatform.Authorization.Application.Persistence
 {
-    public interface IAuthorizationUnitOfWork : IUnitOfWork
-    {
-    }
+    // Context-specific UnitOfWork interface which extends the common IUnitOfWork
+    public interface IAuthorizationUnitOfWork : IUnitOfWork { }
 }

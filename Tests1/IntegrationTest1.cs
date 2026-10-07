@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace TestsProj.Tests
+namespace Tests1.Tests
 {
     public class IntegrationTest1
     {

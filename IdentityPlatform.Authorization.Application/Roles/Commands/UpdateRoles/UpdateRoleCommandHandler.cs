@@ -57,14 +57,15 @@ namespace IdentityPlatform.Authorization.Application.Roles.Commands.UpdateRoles
             // 2. فحص صلاحية الوصول للمورد (Resource-Based Authorization)
             var authResult = await _authorizationService.AuthorizeAsync(currentUserPrincipal, roleDto, new SameUserOrAdminRequirement());
 
+          
             if (!authResult.Succeeded)
             {
-                return Result.Failure(DomainError.Unauthorized().ErrorMessage);
+                return Result.Failure<Result, IDomainError>(DomainError.Unauthorized()); 
             }
             role.UpdateDetails(request.Name, request.Description, request.Permissions);
             await _roleRepository.Update(role);
-            // 3. متابعة منطق التعديل الحقيقي...
-            return Result.Success();
+
+            return Result.Success<Result, IDomainError>(Result.Success());
         }
 
         protected override IAggregateRoot? GetAggregateRoot(Result<Result, IDomainError> result)

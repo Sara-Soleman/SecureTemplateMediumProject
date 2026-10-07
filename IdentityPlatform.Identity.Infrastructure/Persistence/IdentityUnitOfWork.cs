@@ -1,4 +1,5 @@
-﻿using IdentityPlatform.Identity.Application.Persistence;
+﻿using Common.Application.Abstractions;
+using IdentityPlatform.Identity.Application.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;

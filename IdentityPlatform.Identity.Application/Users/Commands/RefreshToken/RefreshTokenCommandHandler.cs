@@ -21,7 +21,7 @@ namespace IdentityPlatform.Identity.Application.Users.Commands.RefreshToken
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private User? _user; // 👈 جعلناه قابلاً للقيم الفارغة لتجنب التحذيرات
+        private User? _user; 
 
         public RefreshTokenCommandHandler(
             IUserRepository userRepository,

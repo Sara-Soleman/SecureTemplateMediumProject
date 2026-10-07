@@ -1,7 +1,6 @@
 ﻿using Common.Application.Abstractions;
 using Common.Domain;
 using Common.Infrastructure.Abstractions;
-using IdentityPlatform.Identity.Application.Persistence;
 using IdentityPlatform.Identity.Domain.Sessions.Interfaces;
 using IdentityPlatform.Identity.Domain.Tokens.Interfaces;
 using IdentityPlatform.Identity.Domain.Users.Interfaces;
@@ -24,13 +23,14 @@ namespace IdentityPlatform.Identity.Infrastructure
         {
             // جلب نص الاتصال من appsettings.json
             var connectionString = configuration.GetConnectionString("IdentityDatabase");
+            Console.WriteLine(
+    $"Identity connection string exists: {!string.IsNullOrWhiteSpace(connectionString)}");
             // 1. تسجيل IdentityDbContext وإرباحه بـ IUnitOfWork
             services.AddDbContext<IdentityDbContext>(options =>
                 options.UseSqlServer(connectionString)); //
 
-            //services.AddScoped<IUnitOfWork>(provider =>
-            //    provider.GetRequiredService<IdentityDbContext>());
-            services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
+            // Register IdentityUnitOfWork as implementation of the context-specific interface
+            services.AddScoped<IdentityPlatform.Identity.Application.Persistence.IIdentityUnitOfWork, IdentityUnitOfWork>();
 
             // 2. تسجيل واجهات الـ Domain (Repositories)
             services.AddScoped<IUserRepository, UserRepository>();
